@@ -1,6 +1,6 @@
 // Fichitas: guarda el juego en el dispositivo para jugar sin internet.
 // Cambia VERSION cada vez que se publique una versión nueva.
-const VERSION = 'fichitas-v12';
+const VERSION = 'fichitas-v13';
 const FILES = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png',
   './apple-touch-icon.png', './3d/', './3d/index.html'];
 

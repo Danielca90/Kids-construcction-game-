@@ -599,9 +599,18 @@ function pieceEl(s,c){
     case 'bush':bd.style.background=`radial-gradient(circle at 25% 62%,${col} 0 30%,transparent 31%),radial-gradient(circle at 75% 62%,${col} 0 30%,transparent 31%),radial-gradient(circle at 50% 34%,${col} 0 34%,transparent 35%),radial-gradient(circle at 40% 30%,#ffffff40 0 10%,transparent 12%),linear-gradient(transparent 60%,${dk} 60%)`;break;
     case 'flag':bd.style.background=`linear-gradient(90deg,transparent 12%,#9a9ea2 12% 26%,transparent 26%)`;
       {const f=document.createElement('i');f.className='inner';Object.assign(f.style,{left:'26%',top:'4%',width:W*1.6+'px',height:H*.42+'px',background:`linear-gradient(${col},${dk})`,clipPath:'polygon(0 0,100% 50%,0 100%)'});e.appendChild(f)}break;
-    case 'wheel':bd.style.borderRadius='50%';
-      bd.style.background=`radial-gradient(circle,#d8dadc 0 18%,#9a9ea2 19% 30%,#d8dadc 31% 40%,#1c1d1f 42% 100%)`;
-      bd.style.boxShadow='inset 0 0 0 2px #000';break;
+    case 'wheel':{
+      // soporte de rueda (como la placa con eje de Lego): bloque gris con botones arriba y un eje donde entra la rueda
+      const hc='#6f7478',hd='#4b4f53',hh=H*.42,D=Math.min(W*.94,H*.9);
+      const hold=document.createElement('i');hold.className='inner';
+      Object.assign(hold.style,{left:'4%',right:'4%',top:'0',height:hh+'px',background:hc,borderRadius:c*.03+'px',
+        boxShadow:`inset 0 ${-Math.max(1,c*.08)}px 0 ${hd}, inset 0 ${Math.max(1,c*.05)}px 0 rgba(255,255,255,.3)`});
+      const ax=document.createElement('i');ax.className='inner';
+      Object.assign(ax.style,{left:(W/2-c*.18)+'px',width:c*.36+'px',top:hh*.5+'px',height:(H-D)/2+D/2-hh*.5+'px',background:`linear-gradient(90deg,${hd},#9a9ea2,${hd})`});
+      e.insertBefore(ax,bd);e.insertBefore(hold,ax);
+      if(!small)for(let i=0;i<s.w;i++)studAt(e,i,c,hc,hd);
+      Object.assign(bd.style,{inset:'auto',left:(W-D)/2+'px',top:(H-D)+'px',width:D+'px',height:D+'px',borderRadius:'50%',
+        background:`radial-gradient(circle,#5c6064 0 9%,#d8dadc 10% 20%,#9a9ea2 21% 31%,#d8dadc 32% 41%,#1c1d1f 43% 100%)`,boxShadow:'inset 0 0 0 2px #000'})}break;
   }
   return e;
 }
