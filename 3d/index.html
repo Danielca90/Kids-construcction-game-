@@ -60,7 +60,7 @@ canvas{display:block;width:100%;height:100%}
 <body>
 <!-- MENÚ 3D -->
 <div class="screen" id="menu3d">
-  <header><a class="rbtn back" href="../" aria-label="Volver">🏠</a><span class="name">🧊 Modelos 3D</span><span class="sp"></span><span class="pill" id="totStars">⭐ 0</span></header>
+  <header><a class="rbtn back" href="../" aria-label="Volver">🏠</a><span class="name">🧊 Modelos 3D</span><span class="sp"></span><span class="pill" id="coins3">🪙 0</span><span class="pill" id="totStars">⭐ 0</span></header>
   <div class="grid" id="cards"></div>
 </div>
 <!-- JUEGO 3D -->
@@ -72,7 +72,7 @@ canvas{display:block;width:100%;height:100%}
       <div class="rot"><button class="rbtn" id="rl">⟲</button><button class="rbtn" id="rr">⟳</button></div></section>
   </main>
 </div>
-<div id="win"><div class="box"><div class="star">⭐</div><h2>¡Lo lograste!</h2><button id="again">↻</button> <button id="toMenu" style="margin-top:12px;font-size:34px;width:80px;height:80px;border:0;border-radius:50%;background:#e8f4fb;box-shadow:0 5px 0 #9ccde6">🏠</button></div></div>
+<div id="win"><div class="box"><div class="star">⭐</div><h2>¡Lo lograste!</h2><div id="earn3" style="font-size:32px;font-weight:900;color:#c99a00"></div><button id="again">↻</button> <button id="toMenu" style="margin-top:12px;font-size:34px;width:80px;height:80px;border:0;border-radius:50%;background:#e8f4fb;box-shadow:0 5px 0 #9ccde6">🏠</button></div></div>
 <script>
 // =====================================================================
 //  FICHITAS 3D — modelos armados en 3D isométrico con fichas reales.
@@ -247,7 +247,11 @@ function persist3(){try{localStorage.setItem(SKEY,JSON.stringify(save3))}catch(e
 // ================== MENÚ ==================
 const $=s=>document.querySelector(s);
 function baseOf(M){return P('base',M.base,0,0,0,M.N,M.N,1)}
+// monedas compartidas con el juego principal
+function coinsGet(){try{return (JSON.parse(localStorage.getItem('fichitas_v1'))||{}).coins||0}catch(e){return 0}}
+function coinsAdd(n){try{const s=JSON.parse(localStorage.getItem('fichitas_v1'))||{};s.coins=(s.coins||0)+n;localStorage.setItem('fichitas_v1',JSON.stringify(s))}catch(e){}}
 function renderMenu(){
+  $('#coins3').textContent='🪙 '+coinsGet();
   $('#totStars').textContent='⭐ '+Object.values(save3.stars).reduce((a,b)=>a+b,0);
   const C=$('#cards');C.innerHTML='';
   MODELS3D.forEach((M,i)=>{const b=document.createElement('button');b.className='card';b.dataset.i=i;
@@ -319,6 +323,8 @@ function dropPiece(){
   requestAnimationFrame(step);
 }
 function win(){busy=true;say('Good job! You did it!');[523,659,784,1047].forEach((f,j)=>tone(f,j*.13,.3));
+  const first=!(save3.stars[M.id]>0),earned=first?Math.max(3,STEPS.length):Math.max(1,Math.ceil(STEPS.length/3));
+  coinsAdd(earned);$('#earn3').textContent=`+${earned} 🪙`;
   save3.stars[M.id]=(save3.stars[M.id]||0)+1;persist3();
   const t0=performance.now();const sp=now=>{spin=Math.min(4,(now-t0)/350);if(spin<4)requestAnimationFrame(sp);else{spin=0;$('#win').classList.add('show')}};requestAnimationFrame(sp)}
 $('#again').addEventListener('click',()=>{const i=MODELS3D.indexOf(M);openModel(i)});

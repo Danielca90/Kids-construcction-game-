@@ -69,6 +69,18 @@ aside{flex:0 0 clamp(210px,30vw,360px);display:flex;flex-direction:column;gap:12
 .tile.next .pw{animation:hop 1.5s ease-in-out infinite}
 .tile.nope .pw{animation:nope .45s ease-in-out}
 .pw{position:relative}
+.combo{position:absolute;left:14px;top:12px;z-index:30;font-weight:900;font-size:28px;color:#fff;background:linear-gradient(#ff8a1f,#e63b2e);border-radius:999px;padding:4px 16px;box-shadow:0 4px 0 #a82015;pointer-events:none}
+.combo.bump{animation:bumpc .35s ease-out}
+@keyframes bumpc{0%{transform:scale(1.5)}100%{transform:scale(1)}}
+.pts{position:fixed;z-index:58;font-weight:900;font-size:30px;pointer-events:none;color:#ffd84d;text-shadow:2px 0 0 #111,-2px 0 0 #111,0 2px 0 #111,0 -2px 0 #111;animation:pts 1s ease-out forwards}
+.pts.bad{color:#ff5a4f}
+@keyframes pts{0%{transform:translate(-50%,0) scale(.6);opacity:0}20%{transform:translate(-50%,-10px) scale(1.15);opacity:1}100%{transform:translate(-50%,-70px) scale(1);opacity:0}}
+#scoreLine{font-size:22px;font-weight:900;margin:2px 0 8px}
+.earn{font-size:34px;font-weight:900;color:#c99a00;text-shadow:0 2px 0 #fff3b0}
+.diff .price{font-size:16px;font-weight:900;background:rgba(0,0,0,.25);border-radius:999px;padding:2px 12px;margin-top:2px}
+.diff.locked.can{filter:none;opacity:1;animation:canbuy 1.4s ease-in-out infinite}
+@keyframes canbuy{0%,100%{transform:scale(1)}50%{transform:scale(1.04)}}
+.toast{position:fixed;left:50%;top:18%;transform:translateX(-50%);z-index:96;background:#24506b;color:#fff;font-weight:900;font-size:22px;padding:12px 22px;border-radius:999px;box-shadow:0 4px 12px rgba(0,0,0,.25);animation:offok 2.6s ease forwards}
 .tile.press{transform:scale(.9);transition:transform .08s}
 .tile{transition:transform .12s,box-shadow .2s,background .2s}
 .spark{position:fixed;z-index:55;width:9px;height:9px;border-radius:2px;pointer-events:none}
@@ -212,7 +224,7 @@ aside{flex:0 0 clamp(210px,30vw,360px);display:flex;flex-direction:column;gap:12
 <body>
 <!-- INICIO -->
 <div id="home" class="screen">
-  <header><h1>🧱 Fichitas</h1><span class="sp"></span><span class="pill" id="total">⭐ 0</span><button class="rbtn mus" aria-label="Música">🎵</button><button class="rbtn snd" aria-label="Sonido">🔊</button><button class="rbtn" id="gear" aria-label="Papás">⚙️</button></header>
+  <header><h1>🧱 Fichitas</h1><span class="sp"></span><span class="pill" id="coins">🪙 0</span><span class="pill" id="total">⭐ 0</span><button class="rbtn mus" aria-label="Música">🎵</button><button class="rbtn snd" aria-label="Sonido">🔊</button><button class="rbtn" id="gear" aria-label="Papás">⚙️</button></header>
   <div id="homeBody">
     <div id="modes">
       <button class="mode cont hidden" id="cont"></button>
@@ -231,7 +243,7 @@ aside{flex:0 0 clamp(210px,30vw,360px);display:flex;flex-direction:column;gap:12
 </div>
 <!-- JUEGO -->
 <div id="game" class="screen hidden">
-  <header><button class="rbtn" id="homeBtn" aria-label="Modelos">🏠</button><span class="name" id="figName"></span><span class="sp"></span><span class="pill" id="bagPill"></span><span class="pill" id="stars">⭐ 0</span><button class="rbtn mus" aria-label="Música">🎵</button><button class="rbtn snd" aria-label="Sonido">🔊</button></header>
+  <header><button class="rbtn" id="homeBtn" aria-label="Modelos">🏠</button><span class="name" id="figName"></span><span class="sp"></span><span class="pill" id="bagPill"></span><span class="pill" id="scorePill">🎯 0</span><span class="pill" id="stars">⭐ 0</span><button class="rbtn mus" aria-label="Música">🎵</button><button class="rbtn snd" aria-label="Sonido">🔊</button></header>
   <main>
     <aside><div id="modelBox" class="panel"><div id="model"></div></div><div id="tray" class="panel"></div></aside>
     <section class="stage" id="stage"><div class="wrap" id="boardWrap"><div class="board" id="board"></div><div class="plate" id="plate"></div></div></section>
@@ -254,8 +266,12 @@ aside{flex:0 0 clamp(210px,30vw,360px);display:flex;flex-direction:column;gap:12
 </div>
 <!-- capas -->
 <div id="bag" class="ov"><button id="bagBtn"><span class="pk">📦</span><span class="n" id="bagN"></span><span class="s" id="bagS"></span></button></div>
-<div id="win" class="ov"><div class="box"><div class="star">⭐</div><h2>¡Lo lograste!</h2>
+<div id="win" class="ov"><div class="box"><div class="star">⭐</div><h2>¡Lo lograste!</h2><div id="scoreLine"></div><div id="earn" class="earn"></div>
   <div class="btns"><button id="home2" aria-label="Modelos">🏠</button><button id="again" aria-label="Otra vez">↻</button><button id="next" aria-label="Siguiente">▶</button></div></div></div>
+<div id="buy" class="ov"><div class="box">
+  <div style="font-size:64px;line-height:1">🔓</div><h3 id="buyT"></h3><div id="buyP" class="earn"></div>
+  <div class="btns"><button id="buyNo" style="font-size:30px;width:72px;height:72px;background:#e8f4fb;box-shadow:0 5px 0 #9ccde6">✕</button><button id="buyOk" style="font-size:40px;width:96px;height:96px;background:#ffd84d;box-shadow:0 6px 0 #d4a900">✓</button></div>
+</div></div>
 <div id="parents" class="ov"><div class="box">
   <h3>Solo papás</h3>
   <div id="pcode"><div class="dots" id="pdots"></div><div class="keys" id="pkeys"></div></div>
@@ -425,6 +441,30 @@ function buzz(ms=15){
     hapLabel.click()}catch(e){}
 }
 
+// ================== PUNTAJE EN RACHA (estilo baile) ==================
+// acierto: 10 pts × multiplicador (×2 desde 3 seguidos, ×3 desde 6, ×4 desde 10); error: -15 y se corta la racha
+const multOf=k=>k>=10?4:k>=6?3:k>=3?2:1;
+function ptsPop(txt,x,y,bad){const d=document.createElement('div');d.className='pts'+(bad?' bad':'');d.textContent=txt;d.style.left=x+'px';d.style.top=y+'px';document.body.appendChild(d);setTimeout(()=>d.remove(),1050)}
+function updScore(bump){
+  $('#scorePill').textContent='🎯 '+(st.score||0);
+  let c=$('#stage').querySelector('.combo');
+  const k=st.streak||0;
+  if(k>=3){if(!c){c=document.createElement('div');c.className='combo';$('#stage').appendChild(c)}
+    c.textContent=`🔥 ×${multOf(k)} · ${k}`;if(bump){c.classList.remove('bump');void c.offsetWidth;c.classList.add('bump')}}
+  else if(c)c.remove();
+}
+function scoreHit(el){
+  st.streak=(st.streak||0)+1;const m=multOf(st.streak),pts=10*m;st.score=(st.score||0)+pts;
+  const r=el?el.getBoundingClientRect():stage.getBoundingClientRect();ptsPop('+'+pts,r.left+r.width/2,r.top-10);
+  const mile={3:'Great!',6:'Awesome!',10:'Perfect!',15:'Super star!',20:'Amazing!'}[st.streak];
+  if(mile){setTimeout(()=>{say(mile,true)},200);setTimeout(()=>word(mile.toUpperCase(),'#ffd84d'),650);sFan()}
+  updScore(true);
+}
+function scoreMiss(t){
+  const lost=Math.min(15,st.score||0);st.score=(st.score||0)-lost;st.streak=0;
+  const r=t.getBoundingClientRect();ptsPop(lost?'-'+lost:'Miss',r.left+r.width/2,r.top,true);updScore(false);
+}
+
 // ================== EFECTOS DE ENCAJE ==================
 function sparks(x,y,color,n=10){
   for(let i=0;i<n;i++){const d=document.createElement('div');d.className='spark';d.style.background=i%3?color:'#fff';
@@ -501,11 +541,19 @@ const DIFF=[null,
   {emo:'📦',bg:'#ff8a1f',sh:'#c95d00'},{emo:'🚀',bg:'#e63b2e',sh:'#a82015'},
   {emo:'🏆',bg:'#24506b',sh:'#122c3d'}];
 function totalStars(){return Object.values(save.stars).reduce((a,b)=>a+b,0)}
-const lvlUnlocked=n=>save.unlockAll||n===1||FIGURES.some(G=>!G.set&&G.lvl===n-1&&save.stars[G.id]>0);
+// ---- monedas: se ganan al terminar modelos y se gastan para abrir niveles (en orden) ----
+const LEVEL_COST=[0,0,15,40,90,160,300,500];
+if(!Array.isArray(save.lvlOwned)){   // respeta lo que ya estaba abierto con la regla anterior
+  save.lvlOwned=[1];for(let n=2;n<8;n++)if(FIGURES.some(G=>!G.set&&G.lvl===n-1&&save.stars[G.id]>0)||FIGURES.some(G=>!G.set&&G.lvl===n&&save.stars[G.id]>0))save.lvlOwned.push(n);
+  save.coins=save.coins||0;persist()}
+const lvlUnlocked=n=>save.unlockAll||save.lvlOwned.includes(n);
+const canBuy=n=>!lvlUnlocked(n)&&lvlUnlocked(n-1)&&(save.coins||0)>=LEVEL_COST[n];
+function toast(t){document.querySelectorAll('.toast').forEach(x=>x.remove());const d=document.createElement('div');d.className='toast';d.textContent=t;document.body.appendChild(d);setTimeout(()=>d.remove(),2700)}
+const sCoin=()=>{tone(988,0,.08,'square',.06);tone(1319,.07,.25,'triangle',.18)};
 const unlocked=i=>{const F=FIGS[i];return F.custom||F.set||lvlUnlocked(F.lvl)||save.stars[F.id]>0};
 const progOf=F=>{const pr=save.prog[F.id];return pr&&pr.v===5&&pr.placed>0&&pr.placed<F.steps.length?pr:null};
 function renderHome(){
-  $('#total').textContent='⭐ '+totalStars();
+  $('#total').textContent='⭐ '+totalStars();$('#coins').textContent='🪙 '+(save.coins||0);
   const last=save.last?FIGS.findIndex(F=>F.id===save.last):-1,cont=$('#cont');
   if(last>=0&&progOf(FIGS[last])){const F=FIGS[last];
     cont.innerHTML=`▶ Seguir ${F.emo} ${F.name} <span style="opacity:.7">${Math.round(progOf(F).placed/F.steps.length*100)}%</span>`;
@@ -515,17 +563,24 @@ function renderHome(){
   const D=$('#diffs');D.innerHTML='';
   for(let n=1;n<LEVELS.length;n++){
     const d=DIFF[n],figs=FIGURES.filter(F=>F.lvl===n&&!F.set),done=figs.filter(F=>save.stars[F.id]>0).length;
-    const b=document.createElement('button');b.className='diff'+(lvlUnlocked(n)?'':' locked');b.dataset.n=n;
+    const b=document.createElement('button');b.className='diff'+(lvlUnlocked(n)?'':' locked')+(canBuy(n)?' can':'');b.dataset.n=n;
     b.style.background=d.bg;b.style.boxShadow=`0 6px 0 ${d.sh}`;
-    b.innerHTML=`<span class="emo">${d.emo}</span><span class="num">${n}</span><span class="rng">${LEVELS[n].range} fichas</span><span class="ds">⭐ ${done}/${figs.length}</span>`;
+    b.innerHTML=`<span class="emo">${d.emo}</span><span class="num">${n}</span><span class="rng">${LEVELS[n].range} fichas</span>${lvlUnlocked(n)?`<span class="ds">⭐ ${done}/${figs.length}</span>`:`<span class="price">🪙 ${LEVEL_COST[n]}</span>`}`;
     D.appendChild(b);
   }
 }
 $('#diffs').addEventListener('click',ev=>{
   ac();const b=ev.target.closest('.diff');if(!b)return;const n=+b.dataset.n;
-  if(!lvlUnlocked(n)){b.classList.remove('nope');void b.offsetWidth;b.classList.add('nope');return}
+  if(!lvlUnlocked(n)){
+    if(canBuy(n)){buyLvl=n;$('#buyT').textContent=`Abrir nivel ${n}`;$('#buyP').textContent=`🪙 ${LEVEL_COST[n]}`;$('#buy').classList.add('show');sTap();return}
+    b.classList.remove('nope');void b.offsetWidth;b.classList.add('nope');sPop();
+    toast(!lvlUnlocked(n-1)?`Primero abre el nivel ${n-1}`:`Te faltan 🪙 ${LEVEL_COST[n]-(save.coins||0)}`);return}
   sTap();curLvl=n;show('menu');
 });
+let buyLvl=0;
+$('#buyNo').addEventListener('click',()=>$('#buy').classList.remove('show'));
+$('#buyOk').addEventListener('click',()=>{const n=buyLvl;if(!canBuy(n))return;save.coins-=LEVEL_COST[n];save.lvlOwned.push(n);persist();
+  $('#buy').classList.remove('show');sFan();sCoin();say('Level '+n+' unlocked!');confetti();renderHome()});
 $('#cont').addEventListener('click',()=>{ac();sTap();openFig(+$('#cont').dataset.i)});
 try{if(window.top===window&&/^https?:$/.test(location.protocol))$('#go3d').classList.remove('hidden')}catch(e){}
 $('#goRescue').addEventListener('click',()=>{ac();sTap();curLvl='rescate';show('menu')});
@@ -584,7 +639,7 @@ function newState(){
   if(F.lvl>=4){const need=new Set(F.steps.map(key)),ks=['b1','b2','b3','p2','sI','qI','rd'],cs=Object.keys(COL).filter(c=>c!=='x');
     let guard=0;while(extra.length<(hasBags()?2:3)&&guard++<300){const p=P(ks[Math.random()*ks.length|0],cs[Math.random()*cs.length|0],0,0);
       if(!need.has(key(p))&&!extra.some(e=>key(e)===key(p)))extra.push(p)}}
-  st={v:5,fig:F.id,placed:0,extra,opened:-1,order:[]};
+  st={v:5,fig:F.id,placed:0,extra,opened:-1,order:[],score:0,streak:0};
   if(!hasBags())openBag(0,true);
   return st;
 }
@@ -625,6 +680,7 @@ function render(){
   $('#bagPill').classList.toggle('hidden',!hasBags());
   if(hasBags())$('#bagPill').textContent=`📦 ${Math.min(cb+1,nBags())}/${nBags()}`;
   $('#stars').textContent=done?'⭐ '+(save.stars[F.id]||0):'🧱 '+(N-st.placed);
+  updScore(false);
   // ---- cámara: el tablero se dibuja entero y la cámara hace zoom/paneo suave hacia donde se está armando ----
   const r=stage.getBoundingClientRect(),RS=F.rows*PL;
   C=Math.max(6,Math.min(r.width*.9/F.cols,r.height*.8/(RS+.6),110));             // escala que muestra todo
@@ -689,7 +745,7 @@ tray.addEventListener('pointerdown',ev=>{
   if(t.dataset.k!==key(target)){
     // equivocarse bloquea la bandeja un rato (cada vez más) y la ficha que sigue brinca para que la mire
     t.classList.remove('nope');void t.offsetWidth;t.classList.add('nope');sPop();say('Oops! Try again.');word('Oops!','#ff8a1f');
-    combo=0;buzz([30,60,30]);wrong=Math.min(wrong+1,3);const ms=[0,1500,3000,5000][wrong];
+    combo=0;buzz([30,60,30]);scoreMiss(t);keep();wrong=Math.min(wrong+1,3);const ms=[0,1500,3000,5000][wrong];
     busy=true;tray.classList.add('wait');
     const g=board.querySelector(`[data-step="${st.placed}"]`);if(g){g.classList.remove('look');void g.offsetWidth;g.classList.add('look')}
     setTimeout(()=>{tray.classList.remove('wait');busy=false;if(g)g.classList.remove('look')},ms);
@@ -719,6 +775,7 @@ function fly(t,target){
     if(fresh){tray.classList.remove('fresh');void tray.offsetWidth;tray.classList.add('fresh')}
     const el=board.querySelector(`[data-step="${placedAt}"]`);
     if(el){el.classList.add('pop');const r=el.getBoundingClientRect();sparks(r.left+r.width/2,r.bottom,COL[target.c][0],8+Math.min(combo,8))}
+    scoreHit(el);keep();
     shakeBoard();
     busy=false;
     if(st.placed===N)celebrate();
@@ -736,7 +793,13 @@ function nextIdx(){const f=fig();const g=FIGS.map((F,i)=>[F,i]).filter(([F])=>f.
   const pos=g.findIndex(([,i])=>i===figIdx);return pos>=0&&pos+1<g.length?g[pos+1][1]:-1}
 function celebrate(){
   busy=true;const F=fig();
+  const first=!(save.stars[F.id]>0),N0=F.steps.length,base=first?Math.max(3,N0):Math.max(1,Math.ceil(N0/3));
+  const sc=st.score||0,bonus=Math.floor(sc/50),earned=base+bonus;save.best=save.best||{};
+  const record=sc>(save.best[F.id]||0);if(record)save.best[F.id]=sc;
+  save.coins=(save.coins||0)+earned;
+  $('#scoreLine').textContent=`🎯 ${sc} puntos`+(record?' · 🏆 ¡Récord!':` · Récord ${save.best[F.id]}`);
   save.stars[F.id]=(save.stars[F.id]||0)+1;delete save.prog[F.id];persist();
+  $('#earn').textContent=`+${earned} 🪙`+(bonus?` (incluye +${bonus} por puntos)`:'');
   render();combo=0;
   {const sh=document.createElement('div');sh.className='shine';board.appendChild(sh);setTimeout(()=>sh.remove(),1000);
    const r=board.getBoundingClientRect();for(let i=0;i<5;i++)setTimeout(()=>sparks(r.left+Math.random()*r.width,r.top+Math.random()*r.height,'#ffd84d',8),i*90)}
@@ -745,7 +808,7 @@ function celebrate(){
       Object.assign(f.style,{width:w+'px',height:w*1.2+'px',left:(F.cols*C-w)/2+'px',top:F.rows*PL*C-.25*C+'px'});board.querySelector('.car').appendChild(f)}
     board.classList.add('go-'+F.anim)},400);
   $('#next').classList.toggle('hidden',nextIdx()<0);
-  setTimeout(()=>{$('#stars').textContent='⭐ '+save.stars[F.id];$('#win').classList.add('show')},3400);
+  setTimeout(()=>{$('#stars').textContent='⭐ '+save.stars[F.id];$('#win').classList.add('show');sCoin()},3400);
 }
 function confetti(){
   const cols=['#e63b2e','#ffc92a','#7fd3f7','#ff8a1f','#4cb54a','#b06cf0'];
@@ -924,7 +987,7 @@ $('#pHaptic').addEventListener('click',()=>{save.noHaptic=!save.noHaptic;persist
 $('#pUnlock').addEventListener('click',()=>{save.unlockAll=!save.unlockAll;persist();sFan();pRender();renderHome()});
 $('#pReset').addEventListener('click',()=>{const b=$('#pReset');
   if(!b.dataset.sure){b.dataset.sure='1';b.textContent='¿Seguro? Toca otra vez para borrar';return}
-  save.stars={};save.prog={};save.last=null;persist();b.dataset.sure='';b.textContent='✅ Borrado';renderHome()});
+  save.stars={};save.prog={};save.last=null;save.coins=0;save.lvlOwned=[1];persist();b.dataset.sure='';b.textContent='✅ Borrado';renderHome()});
 $('#pClose').addEventListener('click',()=>{$('#parents').classList.remove('show');$('#pMsg').textContent=''});
 // ---- copia de seguridad: todo el progreso (2D y 3D) en un archivo ----
 $('#pBackup').addEventListener('click',async()=>{

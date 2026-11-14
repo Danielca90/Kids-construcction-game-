@@ -56,6 +56,25 @@ const MODELS=[
   B.b(0,3,1,'o');B.b(1,3,4,'r');B.b(5,3,1,'y');
   B.b(0,6,2,'r');B.k('sD',2,6,'b');B.p(4,6,2,'r');
   B.p(0,9,3,'r')}},
+{id:'helado',name:'Helado',emo:'🍦',anim:'jump',build(B){
+  B.b(1,0,1,'n');B.b(0,3,3,'m');B.k('rd',1,6,'w')}},
+{id:'semaforo',name:'Semáforo',emo:'🚦',anim:'jump',build(B){
+  B.b(0,0,1,'k');B.k('rd',0,3,'g');B.k('rd',0,6,'y');B.k('rd',0,9,'r')}},
+{id:'puente',name:'Puente',emo:'🌉',anim:'jump',build(B){
+  B.b(0,0,1,'a');B.b(3,0,1,'a');B.b(0,3,4,'r')}},
+{id:'florecita',name:'Florecita',emo:'🌼',anim:'sway',build(B){
+  B.b(0,0,3,'o');B.b(1,3,1,'g');B.k('rd',1,6,'y')}},
+{id:'carritomini',name:'Carrito mini',emo:'🚗',anim:'drive',build(B){
+  B.wheel(0,0);B.wheel(3,0);B.b(0,3,4,'a');B.b(4,3,1,'y')}},
+{id:'muneco',name:'Muñeco de nieve',emo:'⛄',anim:'jump',build(B){
+  B.b(0,0,3,'w');B.b(0,3,1,'w');B.k('ojo',1,3,'w');B.b(2,3,1,'w');B.p(0,6,3,'x');B.b(1,7,1,'x')}},
+{id:'barquitovela',name:'Barquito de vela',emo:'⛵',anim:'sail',build(B){
+  B.b(0,0,6,'n');B.b(2,3,1,'n');B.k('sD',3,3,'w');B.b(2,6,1,'n');B.b(3,6,1,'w');B.p(2,9,1,'r')}},
+{id:'camioncito',name:'Camioncito',emo:'🚚',anim:'drive',build(B){
+  B.wheel(0,0);B.wheel(5,0);B.b(0,3,6,'y');B.b(0,6,4,'o');B.b(4,6,1,'y');B.b(5,6,1,'b');B.p(4,9,2,'y')}},
+{id:'trencito',name:'Trencito',emo:'🚂',anim:'drive',build(B){
+  B.wheel(0,0);B.wheel(2,0);B.wheel(4,0);B.wheel(6,0);
+  B.b(0,3,4,'r');B.b(4,3,4,'a');B.b(1,6,1,'x');B.b(2,6,2,'r');B.k('rd',5,6,'y');B.k('rd',6,6,'g')}},
 // ---------------- medianos ----------------
 {id:'flor',name:'Flores en maceta',emo:'🌸',anim:'sway',build(B){
   B.wall(1,0,5,'o');B.wall(0,3,7,'o');B.plates(0,6,7,'R');
