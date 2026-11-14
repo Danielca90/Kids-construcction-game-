@@ -299,6 +299,7 @@ let sx=null;$('#stage').addEventListener('pointerdown',e=>{if(e.target.closest('
 window.addEventListener('pointerup',e=>{if(sx===null)return;const d=e.clientX-sx;sx=null;if(Math.abs(d)>40){rot=(rot+(d>0?1:3))&3;drawMini()}});
 window.addEventListener('resize',()=>{if(M){drawMini();renderTray()}else renderMenu()});
 renderMenu();
+try{if(navigator.storage&&navigator.storage.persist)navigator.storage.persist()}catch(e){}
 // sin internet: guarda el juego en el aparato y avisa una vez cuando quedó listo
 try{if('serviceWorker' in navigator&&location.protocol==='https:'){
   navigator.serviceWorker.register('../sw.js',{scope:'../'}).then(()=>navigator.serviceWorker.ready).then(()=>{

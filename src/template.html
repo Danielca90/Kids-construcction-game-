@@ -265,6 +265,9 @@ aside{flex:0 0 clamp(210px,30vw,360px);display:flex;flex-direction:column;gap:12
     <button class="pbtn" id="pEnglish"></button>
     <button class="pbtn" id="pHaptic"></button>
     <button class="pbtn" id="pUnlock"></button>
+    <button class="pbtn" id="pBackup">💾 Guardar copia de seguridad</button>
+    <label class="pbtn" id="pRestoreL" style="cursor:pointer">📂 Recuperar copia<input type="file" id="pRestore" accept=".json,application/json" style="display:none"></label>
+    <div id="pMsg" style="font-weight:800;color:#2d8a2c;min-height:20px"></div>
     <button class="pbtn warn" id="pReset">🗑️ Borrar avance y estrellas</button>
   </div>
   <button class="pbtn ghostb" id="pClose">Cerrar</button>
@@ -922,7 +925,30 @@ $('#pUnlock').addEventListener('click',()=>{save.unlockAll=!save.unlockAll;persi
 $('#pReset').addEventListener('click',()=>{const b=$('#pReset');
   if(!b.dataset.sure){b.dataset.sure='1';b.textContent='¿Seguro? Toca otra vez para borrar';return}
   save.stars={};save.prog={};save.last=null;persist();b.dataset.sure='';b.textContent='✅ Borrado';renderHome()});
-$('#pClose').addEventListener('click',()=>$('#parents').classList.remove('show'));
+$('#pClose').addEventListener('click',()=>{$('#parents').classList.remove('show');$('#pMsg').textContent=''});
+// ---- copia de seguridad: todo el progreso (2D y 3D) en un archivo ----
+$('#pBackup').addEventListener('click',async()=>{
+  let s3=null;try{s3=JSON.parse(localStorage.getItem('fichitas3d'))}catch(e){}
+  const data={app:'fichitas',fecha:new Date().toISOString(),save,save3d:s3};
+  const txt=JSON.stringify(data),name='fichitas-copia-'+new Date().toISOString().slice(0,10)+'.json';
+  try{
+    const file=new File([txt],name,{type:'application/json'});
+    if(navigator.canShare&&navigator.canShare({files:[file]})){await navigator.share({files:[file],title:'Copia de Fichitas'});$('#pMsg').textContent='✅ Copia lista';return}
+  }catch(e){if(e&&e.name==='AbortError')return}
+  try{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([txt],{type:'application/json'}));a.download=name;document.body.appendChild(a);a.click();a.remove();
+    $('#pMsg').textContent='✅ Copia descargada'}catch(e){$('#pMsg').textContent='No se pudo guardar la copia aquí'}
+});
+$('#pRestore').addEventListener('change',async ev=>{
+  const f=ev.target.files&&ev.target.files[0];if(!f)return;
+  try{const d=JSON.parse(await f.text());if(d.app!=='fichitas'||!d.save)throw 0;
+    save=Object.assign({stars:{},prog:{},custom:[],free:[],draft:{id:null,pieces:[]}},d.save);persist();
+    if(d.save3d)try{localStorage.setItem('fichitas3d',JSON.stringify(d.save3d))}catch(e){}
+    rebuildFigs();renderHome();pRender();sFan();$('#pMsg').textContent='✅ Progreso recuperado ('+(d.fecha||'').slice(0,10)+')'}
+  catch(e){$('#pMsg').textContent='⚠️ Ese archivo no es una copia de Fichitas'}
+  ev.target.value='';
+});
+// pide al aparato no borrar los datos del juego
+try{if(navigator.storage&&navigator.storage.persist)navigator.storage.persist()}catch(e){}
 if(location.hash==='#desbloquear'){save.unlockAll=true;persist()}
 
 let rt;window.addEventListener('resize',()=>{clearTimeout(rt);rt=setTimeout(()=>{if(busy&&!$('#bag').classList.contains('show'))return;
