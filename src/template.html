@@ -67,6 +67,7 @@ aside{flex:0 0 clamp(210px,30vw,360px);display:flex;flex-direction:column;gap:12
 .bagbox{position:absolute;border:3px solid #ff8a1f;border-radius:6px;box-shadow:0 0 0 2000px rgba(255,255,255,.45);pointer-events:none;z-index:9}
 #tray,#eShapes{flex:1;min-height:0;overflow:hidden;padding:10px;display:grid;gap:10px;grid-template-columns:1fr 1fr;grid-auto-rows:1fr}
 #eShapes{grid-template-columns:repeat(2,1fr);overflow-y:auto;grid-auto-rows:minmax(70px,1fr)}
+#eShapes .tile{touch-action:pan-y}
 .tile{position:relative;border:0;border-radius:16px;background:#f2f8fc;display:flex;align-items:center;justify-content:center;transition:box-shadow .2s,background .2s;min-height:0}
 .tile.sel{background:#fff8d6;box-shadow:0 0 0 4px #ffd84d}
 .cnt{position:absolute;right:8px;bottom:6px;font-size:16px;font-weight:900;color:#24506b;background:#fff;border-radius:999px;padding:1px 8px;box-shadow:0 1px 0 #cfe3ef;z-index:5}
@@ -86,7 +87,7 @@ aside{flex:0 0 clamp(210px,30vw,360px);display:flex;flex-direction:column;gap:12
 .diff .price{font-size:16px;font-weight:900;background:rgba(0,0,0,.25);border-radius:999px;padding:2px 12px;margin-top:2px}
 .diff.locked.can{filter:none;opacity:1;animation:canbuy 1.4s ease-in-out infinite}
 @keyframes canbuy{0%,100%{transform:scale(1)}50%{transform:scale(1.04)}}
-.toast{position:fixed;left:50%;top:18%;transform:translateX(-50%);z-index:96;background:#24506b;color:#fff;font-weight:900;font-size:22px;padding:12px 22px;border-radius:999px;box-shadow:0 4px 12px rgba(0,0,0,.25);animation:offok 2.6s ease forwards}
+.toast{pointer-events:none;position:fixed;left:50%;top:18%;transform:translateX(-50%);z-index:96;background:#24506b;color:#fff;font-weight:900;font-size:22px;padding:12px 22px;border-radius:999px;box-shadow:0 4px 12px rgba(0,0,0,.25);animation:offok 2.6s ease forwards}
 .tile.press{transform:scale(.9);transition:transform .08s}
 .tile{transition:transform .12s,box-shadow .2s,background .2s}
 .spark{position:fixed;z-index:55;width:9px;height:9px;border-radius:2px;pointer-events:none}
@@ -227,7 +228,9 @@ aside{flex:0 0 clamp(210px,30vw,360px);display:flex;flex-direction:column;gap:12
   aside{flex:0 0 36%;flex-direction:row}
   #modelBox{flex:0 0 34%}
   #eColors{flex:0 0 38%;max-height:none;align-self:stretch;grid-template-columns:repeat(3,1fr);align-content:start;overflow-y:auto}
-  #eShapes{grid-template-columns:repeat(3,1fr)}
+  /* en vertical la bandeja se desliza de lado, así arrastrar hacia arriba al tablero no se confunde con deslizar */
+  #eShapes{grid-auto-flow:column;grid-template-columns:none;grid-template-rows:repeat(3,1fr);grid-auto-rows:auto;grid-auto-columns:calc((100% - 20px)/3);overflow-x:auto;overflow-y:hidden}
+  #eShapes .tile{touch-action:pan-x}
   #diffs{grid-template-columns:repeat(2,1fr);flex:none;grid-auto-rows:150px}
   #modes{display:grid;grid-template-columns:1fr 1fr;gap:10px}
   .mode{font-size:17px;padding:10px 8px}
@@ -242,6 +245,10 @@ aside{flex:0 0 clamp(210px,30vw,360px);display:flex;flex-direction:column;gap:12
   .cnt{font-size:11px;right:2px;bottom:2px;padding:0 4px}
   .pill{font-size:15px;padding:3px 10px}
   .wbtn{font-size:14px;padding:0 10px}
+  #editor header{gap:5px;padding:8px 8px}#editor header .rbtn{width:36px;height:36px;flex-basis:36px;font-size:17px}
+  #editor .wbtn .tx{display:none}#editor .wbtn{padding:0 9px;font-size:18px}
+  #game header{gap:5px;padding:8px 8px}#game header .rbtn{width:36px;height:36px;flex-basis:36px;font-size:17px}
+  #home header .rbtn{width:34px;height:34px;flex-basis:34px;font-size:16px}
 }
 </style>
 </head>
@@ -281,8 +288,8 @@ aside{flex:0 0 clamp(210px,30vw,360px);display:flex;flex-direction:column;gap:12
     <button class="rbtn" id="eUndo" aria-label="Deshacer">↶</button>
     <button class="rbtn" id="eRm" aria-label="Quitar">🧽</button>
     <button class="rbtn" id="eClear" aria-label="Borrar todo">🗑️</button>
-    <button class="wbtn papaOnly" id="eImport">📥 Traer modo libre</button>
-    <button class="wbtn gold papaOnly" id="eSave">💾 Guardar</button></header>
+    <button class="wbtn papaOnly" id="eImport">📥<span class="tx"> Traer modo libre</span></button>
+    <button class="wbtn gold papaOnly" id="eSave">💾<span class="tx"> Guardar</span></button></header>
   <main>
     <aside><div id="eColors" class="panel"></div><div id="eShapes" class="panel"></div></aside>
     <section class="stage" id="eStage"><div class="wrap" id="eWrap"><div class="board" id="eBoard"></div><div class="plate" id="ePlate"></div></div>
@@ -417,6 +424,7 @@ save.mix=save.mix||[];applyMix();save.prog=save.prog||{};save.custom=save.custom
 function persist(){try{localStorage.setItem(KEY,JSON.stringify(save))}catch(e){}}
 
 // modelos creados por papá
+const escH=t=>String(t==null?'':t).replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
 function customFigure(c){
   const pcs=c.pieces.slice().sort((a,b)=>a.y-b.y||a.x-b.x);
   const minX=Math.min(...pcs.map(p=>p.x));
@@ -436,7 +444,7 @@ function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.rando
 
 // ================== SONIDO ==================
 let AC;
-function ac(){try{AC=AC||new(window.AudioContext||window.webkitAudioContext)();if(AC.state==='suspended')AC.resume()}catch(e){}return AC}
+function ac(){try{AC=AC||new(window.AudioContext||window.webkitAudioContext)();if(AC.state!=='running')AC.resume()}catch(e){}return AC}
 function tone(f,t0,d,type='triangle',v=.22){if(save.muted)return;const a=ac();if(!a)return;const t=a.currentTime+t0,o=a.createOscillator(),g=a.createGain();o.type=type;o.frequency.setValueAtTime(f,t);g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(v,t+.01);g.gain.exponentialRampToValueAtTime(.001,t+d);o.connect(g).connect(a.destination);o.start(t);o.stop(t+d+.05)}
 let noiseBuf=null;
 function click(v=.35){const a=ac();if(!a||save.muted)return;try{
@@ -640,7 +648,7 @@ function renderHome(){
   $('#total').textContent='⭐ '+totalStars();$('#coins').textContent='🪙 '+(save.coins||0);
   const last=save.last?FIGS.findIndex(F=>F.id===save.last):-1,cont=$('#cont');
   if(last>=0&&progOf(FIGS[last])){const F=FIGS[last];
-    cont.innerHTML=`▶ Seguir ${F.emo} ${F.name} <span style="opacity:.7">${Math.round(progOf(F).placed/F.steps.length*100)}%</span>`;
+    cont.innerHTML=`▶ Seguir ${escH(F.emo)} ${escH(F.name)} <span style="opacity:.7">${Math.round(progOf(F).placed/F.steps.length*100)}%</span>`;
     cont.dataset.i=last;cont.classList.remove('hidden')}else cont.classList.add('hidden');
   const nc=FIGS.filter(F=>F.custom).length;
   $('#goPapa').classList.toggle('hidden',!nc);$('#goPapa').textContent=`👨 De papá (${nc})`;
@@ -689,7 +697,7 @@ function renderMenu(){
   figs.forEach(([F,i])=>{
     const b=document.createElement('button');b.className='card'+(unlocked(i)?'':' locked');b.dataset.i=i;
     const s=save.stars[F.id]||0,pr=progOf(F);
-    b.innerHTML=`${pr?`<span class="prog">${Math.round(pr.placed/F.steps.length*100)}%</span>`:''}<div class="mini"><div></div></div><div class="foot">${F.emo} ${F.name} · 🧱 ${F.steps.length}${F.bags.length>1?' · 📦 '+F.bags.length:''}${s?' · ⭐ '+s:''}</div>`;
+    b.innerHTML=`${pr?`<span class="prog">${Math.round(pr.placed/F.steps.length*100)}%</span>`:''}<div class="mini"><div></div></div><div class="foot">${escH(F.emo)} ${escH(F.name)} · 🧱 ${F.steps.length}${F.bags.length>1?' · 📦 '+F.bags.length:''}${s?' · ⭐ '+s:''}</div>`;
     cards.appendChild(b)});
   L.appendChild(cards);
   L.querySelectorAll('.card').forEach(b=>{
@@ -706,10 +714,15 @@ $('#levels').addEventListener('click',ev=>{
 function show(name){screen=name;['home','menu','game','editor'].forEach(n=>$('#'+n).classList.toggle('hidden',n!==name));
   requestAnimationFrame(()=>{if(name==='home')renderHome();else if(name==='menu')renderMenu();else if(name==='game'){render();checkBag()}else renderEditor()})}
 function openFig(i){figIdx=i;const F=fig();curLvl=F.custom?'papa':F.set?F.set:F.lvl;save.last=F.id;
-  const pr=save.prog[F.id];st=(pr&&pr.v===5&&pr.placed<F.steps.length)?pr:newState();keep();busy=false;show('game')}
-function goModels(){$('#win').classList.remove('show');$('#bag').classList.remove('show');busy=false;show('menu')}
+  const pr=save.prog[F.id];st=(pr&&pr.v===5&&pr.placed<F.steps.length&&progOk(F,pr))?pr:newState();
+  clearTimeout(winT);clearTimeout(bagT);wrong=0;tray.classList.remove('wait');keep();busy=false;show('game')}
+const sigOf=F=>F.steps.length+':'+F.steps.map(key).join(',').length;
+function progOk(F,pr){if(pr.sig)return pr.sig===sigOf(F);
+  return (pr.order||[]).every(k=>sampleOf.call(null,k,F,pr))}
+let winT=0,bagT=0;
+function goModels(){clearTimeout(winT);clearTimeout(bagT);$('#win').classList.remove('show');$('#bag').classList.remove('show');busy=false;show('menu')}
 $('#homeBtn').addEventListener('pointerdown',()=>{ac();goModels()});
-$('#home2').addEventListener('pointerdown',()=>{ac();goModels()});
+$('#home2').addEventListener('click',()=>{ac();goModels()});
 
 // ================== JUEGO: estado y sobres ==================
 const board=$('#board'),plate=$('#plate'),stage=$('#stage'),tray=$('#tray'),model=$('#model'),wrap=$('#boardWrap');
@@ -723,7 +736,7 @@ function newState(){
   if(F.lvl>=4){const need=new Set(F.steps.map(key)),ks=['b1','b2','b3','p2','sI','qI','rd'],cs=Object.keys(COL).filter(c=>c!=='x');
     let guard=0;while(extra.length<(hasBags()?2:3)&&guard++<300){const p=P(ks[Math.random()*ks.length|0],cs[Math.random()*cs.length|0],0,0);
       if(!need.has(key(p))&&!extra.some(e=>key(e)===key(p)))extra.push(p)}}
-  st={v:5,fig:F.id,placed:0,extra,opened:-1,order:[],score:0,streak:0};
+  st={v:5,sig:sigOf(F),fig:F.id,placed:0,extra,opened:-1,order:[],score:0,streak:0};
   if(!hasBags())openBag(0,true);
   return st;
 }
@@ -741,7 +754,7 @@ function openBag(b,silent){
   st.opened=b;newMini();
   if(!silent){keep();render()}
 }
-const sampleOf=k=>fig().steps.find(s=>key(s)===k)||st.extra.find(s=>key(s)===k);
+const sampleOf=(k,F,S)=>(F||fig()).steps.find(s=>key(s)===k)||((S||st).extra||[]).find(s=>key(s)===k);
 const isExtra=k=>st.extra.some(s=>key(s)===k);
 function remaining(k){if(isExtra(k))return 2;const F=fig(),end=st.miniEnd;let n=0;for(let i=st.placed;i<end;i++)if(key(F.steps[i])===k)n++;return n}
 function keep(){save.prog[st.fig]=st;persist()}
@@ -806,7 +819,8 @@ function render(){
   tray.innerHTML='';
   if(st.opened<cb||done)return;
   if(st.miniEnd===undefined||st.placed>=st.miniEnd)newMini();
-  const nextK=key(F.steps[st.placed]);
+  let nextK=key(F.steps[st.placed]);
+  if(!st.order.includes(nextK)||st.order.some(k=>!sampleOf(k))){newMini();keep()}
   tray.style.gridTemplateRows='';tray.style.gridTemplateColumns='1fr';
   const tiles=st.order.map(k=>{const t=document.createElement('div');t.className='tile';t.dataset.k=k;tray.appendChild(t);return t});
   const t0=tiles[0];let uc=90;
@@ -863,7 +877,7 @@ function fly(t,target){
     shakeBoard();
     busy=false;
     if(st.placed===N)celebrate();
-    else if(bagDone){busy=true;sBag();setTimeout(()=>{busy=false;render();checkBag()},700)}
+    else if(bagDone){busy=true;sBag();bagT=setTimeout(()=>{busy=false;if(screen==='game'){render();checkBag()}},700)}
   };
   const an=clone.animate([
     {transform:`translate(${dx}px,${dy}px) scale(${s0}) rotate(0deg)`,offset:0},
@@ -892,7 +906,7 @@ function celebrate(){
       Object.assign(f.style,{width:w+'px',height:w*1.2+'px',left:(F.cols*C-w)/2+'px',top:F.rows*PL*C-.25*C+'px'});board.querySelector('.car').appendChild(f)}
     board.classList.add('go-'+F.anim)},400);
   $('#next').classList.toggle('hidden',nextIdx()<0);
-  setTimeout(()=>{$('#stars').textContent='⭐ '+save.stars[F.id];$('#win').classList.add('show');sCoin()},3400);
+  winT=setTimeout(()=>{if(screen!=='game'||fig()!==F)return;$('#stars').textContent='⭐ '+save.stars[F.id];$('#win').classList.add('show');sCoin()},3400);
 }
 function confetti(){
   const cols=['#e63b2e','#ffc92a','#7fd3f7','#ff8a1f','#4cb54a','#b06cf0'];
@@ -1024,25 +1038,31 @@ $('#mixOk').addEventListener('click',()=>{const h=mixResult()||$('#mixPot').data
     if(save.mix.length>=12){const u=usedCols(),i=save.mix.findIndex(m=>!u.has(m.k));if(i<0){toast('Ya hay 12 colores mezclados en uso');return}save.mix.splice(i,1)}
     let n=0;while(save.mix.some(m=>m.k==='c'+n))n++;k='c'+n;save.mix.push({k,h});applyMix()}
   delete $('#mixPot').dataset.pick;persist();ed.c=k;ed.rm=false;$('#mixer').classList.remove('show');sFan();say('My color!');renderEditor()});
+document.addEventListener('pointercancel',()=>{
+  if(drag){if(drag.el)drag.el.remove();drag=null}
+  if(pmove){if(pmove.el)pmove.el.remove();pmove=null;drawEditorBoard()}
+  if(preview){preview.remove();preview=null}});
 let drag=null;
 $('#eShapes').addEventListener('pointerdown',ev=>{const b=ev.target.closest('.tile');if(!b)return;
   drag={k:b.dataset.k,x0:ev.clientX,y0:ev.clientY,moved:false,el:null};});
 document.addEventListener('pointermove',ev=>{if(!drag)return;
   if(!drag.moved&&Math.hypot(ev.clientX-drag.x0,ev.clientY-drag.y0)<10)return;
   if(!drag.moved){drag.moved=true;ac();ed.k=drag.k;ed.rm=false;
-    const s=P(drag.k,drag.pcCol(k,ed.c),0,0);drag.el=pieceEl(s,ed.C);drag.el.classList.add('dragging');document.body.appendChild(drag.el);
+    const s=P(drag.k,pcCol(drag.k,ed.c),0,0);drag.el=pieceEl(s,ed.C);drag.el.classList.add('dragging');document.body.appendChild(drag.el);
     drag.w=CAT[drag.k].w*ed.C;drag.h=CAT[drag.k].h*ed.C*PL}
   drag.el.style.left=(ev.clientX-drag.w/2)+'px';drag.el.style.top=(ev.clientY-drag.h-30)+'px';
   showPreview(drag.k,snapSpot(drag.k,ev.clientX,ev.clientY-30-drag.h/2));
 },{passive:true});
 document.addEventListener('pointerup',ev=>{if(!drag)return;const d=drag;drag=null;
-  if(!d.moved)return;
+  if(!d.moved){selShape(d.k);return}   // toque simple: elegir la ficha (no depender del click, que a veces se pierde)
   d.el.remove();const spot=snapSpot(d.k,ev.clientX,ev.clientY-30-d.h/2);showPreview(null,null);
   if(spot){placeAt(d.k,spot);const nm=(FIXCOL[d.k]?'':colName(ed.c)+' ')+enShape(d.k);say(cap(nm))}else sPop();
   renderEditor();
 });
-$('#eShapes').addEventListener('click',ev=>{const b=ev.target.closest('.tile');if(!b)return;if(ev.detail===0&&false)return;ac();sTap();ed.k=b.dataset.k;ed.rm=false;renderEditor();
-  const nm=(FIXCOL[ed.k]?'':colName(ed.c)+' ')+enShape(ed.k);say(cap(nm));word(cap(nm),FIXCOL[ed.k]?'#fff':COL[ed.c][0],$('#eStage'))});
+let lastSel=0;
+$('#eShapes').addEventListener('click',ev=>{const b=ev.target.closest('.tile');if(!b||Date.now()-lastSel<600)return;selShape(b.dataset.k)});
+function selShape(k){lastSel=Date.now();ac();sTap();ed.k=k;ed.rm=false;ed.sel=-1;renderEditor();
+  const nm=(FIXCOL[ed.k]?'':colName(ed.c)+' ')+enShape(ed.k);say(cap(nm));word(cap(nm),FIXCOL[ed.k]?'#fff':COL[ed.c][0],$('#eStage'))}
 $('#eStage').addEventListener('pointerdown',ev=>{
   ac();const B=$('#eBoard'),br=B.getBoundingClientRect(),c=ed.C,pcs=edPieces();
   if(ed.rm){
@@ -1120,7 +1140,7 @@ $('#sOk').addEventListener('click',()=>{
   let cur=save.custom.find(c=>c.id===save.draft.id);
   if(!cur){cur={id:'c'+Date.now()};save.custom.push(cur)}
   cur.name=name;cur.emo=sEmo;cur.pieces=JSON.parse(JSON.stringify(edPieces()));
-  delete save.prog[cur.id];save.draft={id:cur.id,pieces:cur.pieces.slice()};persist();rebuildFigs();
+  delete save.prog[cur.id];save.draft={id:cur.id,pieces:JSON.parse(JSON.stringify(cur.pieces))};persist();rebuildFigs();
   $('#saveDlg').classList.remove('show');sFan();renderEditor();
 });
 
@@ -1132,7 +1152,7 @@ function pRender(){
   $('#pEnglish').textContent=save.noEnglish?'🇺🇸 Activar inglés (palabras y voz)':'🇺🇸 Inglés activado — tocar para quitar';
   $('#pHaptic').textContent=save.noHaptic?'📳 Activar vibración':'📳 Vibración activada — tocar para quitar';
   $('#pUnlock').textContent=save.unlockAll?'🔒 Volver a bloquear niveles':'🔓 Desbloquear todo';
-  $('#pList').innerHTML=save.custom.map(c=>`<div class="crow"><span>${c.emo} ${c.name} · 🧱 ${c.pieces.length}</span><button data-ed="${c.id}">✏️</button><button data-del="${c.id}">🗑️</button></div>`).join('');
+  $('#pList').innerHTML=save.custom.map(c=>`<div class="crow"><span>${escH(c.emo)} ${escH(c.name)} · 🧱 ${c.pieces.length}</span><button data-ed="${c.id}">✏️</button><button data-del="${c.id}">🗑️</button></div>`).join('');
 }
 $('#pkeys').innerHTML=['1','2','3','4','5','6','7','8','9','⌫','0',''].map(k=>`<button data-k="${k}" ${k?'':'style="visibility:hidden"'}>${k}</button>`).join('');
 $('#gear').addEventListener('click',()=>{ac();pin='';$('#pcode').classList.remove('hidden');$('#popts').classList.add('hidden');
@@ -1177,7 +1197,11 @@ $('#pBackup').addEventListener('click',async()=>{
 $('#pRestore').addEventListener('change',async ev=>{
   const f=ev.target.files&&ev.target.files[0];if(!f)return;
   try{const d=JSON.parse(await f.text());if(d.app!=='fichitas'||!d.save)throw 0;
-    save=Object.assign({stars:{},prog:{},custom:[],free:[],draft:{id:null,pieces:[]}},d.save);persist();
+    const ns=Object.assign({stars:{},prog:{},custom:[],free:[],draft:{id:null,pieces:[]},mix:[],coins:0},d.save);
+    if(typeof ns.stars!=='object'||!Array.isArray(ns.custom))throw 0;
+    ns.mix=Array.isArray(ns.mix)?ns.mix:[];ns.free=Array.isArray(ns.free)?ns.free:[];ns.draft=ns.draft||{id:null,pieces:[]};
+    if(!Array.isArray(ns.lvlOwned)){ns.lvlOwned=[1];for(let n=2;n<8;n++)if(FIGURES.some(G=>!G.set&&(G.lvl===n-1||G.lvl===n)&&ns.stars[G.id]>0))ns.lvlOwned.push(n)}
+    save=ns;applyMix();persist();
     if(d.save3d)try{localStorage.setItem('fichitas3d',JSON.stringify(d.save3d))}catch(e){}
     rebuildFigs();renderHome();pRender();sFan();$('#pMsg').textContent='✅ Progreso recuperado ('+(d.fecha||'').slice(0,10)+')'}
   catch(e){$('#pMsg').textContent='⚠️ Ese archivo no es una copia de Fichitas'}

@@ -231,11 +231,12 @@ function fit(cv,list,rot,N,pad){
 function sizeCanvas(cv){const r=cv.getBoundingClientRect(),d=Math.min(2,window.devicePixelRatio||1);cv.width=Math.max(10,r.width*d);cv.height=Math.max(10,r.height*d);return cv.getContext('2d')}
 
 // ---------------- sonido y voz ----------------
-let AC;function ac(){try{AC=AC||new(window.AudioContext||window.webkitAudioContext)();if(AC.state==='suspended')AC.resume()}catch(e){}return AC}
-function tone(f,t0,d,type='triangle',v=.2){const a=ac();if(!a)return;const t=a.currentTime+t0,o=a.createOscillator(),g=a.createGain();o.type=type;o.frequency.setValueAtTime(f,t);g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(v,t+.01);g.gain.exponentialRampToValueAtTime(.001,t+d);o.connect(g).connect(a.destination);o.start(t);o.stop(t+d+.05)}
+let AC;function ac(){try{AC=AC||new(window.AudioContext||window.webkitAudioContext)();if(AC.state!=='running')AC.resume()}catch(e){}return AC}
+const mainFlag=k=>{try{return !!(JSON.parse(localStorage.getItem('fichitas_v1'))||{})[k]}catch(e){return false}};
+function tone(f,t0,d,type='triangle',v=.2){if(mainFlag('muted'))return;const a=ac();if(!a)return;const t=a.currentTime+t0,o=a.createOscillator(),g=a.createGain();o.type=type;o.frequency.setValueAtTime(f,t);g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(v,t+.01);g.gain.exponentialRampToValueAtTime(.001,t+d);o.connect(g).connect(a.destination);o.start(t);o.stop(t+d+.05)}
 function click(){const a=ac();if(!a)return;try{const b=a.createBuffer(1,a.sampleRate*.05,a.sampleRate),d=b.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/d.length,6);
   const s=a.createBufferSource(),f=a.createBiquadFilter(),g=a.createGain();s.buffer=b;f.type='bandpass';f.frequency.value=2600;g.gain.value=.35;s.connect(f).connect(g).connect(a.destination);s.start()}catch(e){}}
-function say(t){try{const u=new SpeechSynthesisUtterance(t);u.lang='en-US';u.rate=.85;u.pitch=1.15;speechSynthesis.cancel();speechSynthesis.speak(u)}catch(e){}}
+function say(t){if(mainFlag('muted')||mainFlag('noEnglish'))return;try{const u=new SpeechSynthesisUtterance(t);u.lang='en-US';u.rate=.85;u.pitch=1.15;speechSynthesis.cancel();speechSynthesis.speak(u)}catch(e){}}
 function word(t){document.querySelectorAll('.word').forEach(w=>w.remove());const d=document.createElement('div');d.className='word';d.textContent=t;document.getElementById('stage').appendChild(d);setTimeout(()=>d.remove(),1700)}
 
 
@@ -326,8 +327,8 @@ function win(){busy=true;say('Good job! You did it!');[523,659,784,1047].forEach
   const first=!(save3.stars[M.id]>0),earned=first?Math.max(3,STEPS.length):Math.max(1,Math.ceil(STEPS.length/3));
   coinsAdd(earned);$('#earn3').textContent=`+${earned} 🪙`;
   save3.stars[M.id]=(save3.stars[M.id]||0)+1;persist3();
-  const t0=performance.now();const sp=now=>{spin=Math.min(4,(now-t0)/350);if(spin<4)requestAnimationFrame(sp);else{spin=0;$('#win').classList.add('show')}};requestAnimationFrame(sp)}
-$('#again').addEventListener('click',()=>{const i=MODELS3D.indexOf(M);openModel(i)});
+  const t0=performance.now();const sp=now=>{spin=Math.min(4,(now-t0)/350);if(spin<4)requestAnimationFrame(sp);else{spin=0;if(M)$('#win').classList.add('show')}};requestAnimationFrame(sp)}
+$('#again').addEventListener('click',()=>{if(!M)return toMenu();const i=MODELS3D.indexOf(M);openModel(i)});
 $('#toMenu').addEventListener('click',toMenu);
 $('#back').addEventListener('click',toMenu);
 $('#rl').addEventListener('click',()=>{rot=(rot+3)&3;drawMini()});
