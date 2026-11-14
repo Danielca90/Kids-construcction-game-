@@ -1,0 +1,33 @@
+/* pantallas bajitas (iPhone acostado): el inicio se desplaza */
+@media (max-height:520px){
+  #diffs{flex:none;grid-auto-rows:130px}
+  #homeBody{overflow-y:auto;-webkit-overflow-scrolling:touch;touch-action:pan-y}
+}
+@media (orientation:portrait){
+  main{flex-direction:column-reverse}
+  aside{flex:0 0 36%;flex-direction:row}
+  #modelBox{flex:0 0 34%}
+  #eColors{flex:0 0 38%;max-height:none;align-self:stretch;grid-template-columns:repeat(3,1fr);align-content:start;overflow-y:auto}
+  /* en vertical la bandeja se desliza de lado, así arrastrar hacia arriba al tablero no se confunde con deslizar */
+  #eShapes{grid-auto-flow:column;grid-template-columns:none;grid-template-rows:repeat(3,1fr);grid-auto-rows:auto;grid-auto-columns:calc((100% - 20px)/3.35);overflow-x:auto;overflow-y:hidden;scroll-behavior:smooth}
+  #eAside{position:relative}#eColors{flex-basis:32%}
+  #eShapes .tile{touch-action:pan-x}
+  #diffs{grid-template-columns:repeat(2,1fr);flex:none;grid-auto-rows:150px}
+  #modes{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .mode{font-size:17px;padding:10px 8px}
+  .mode.cont{grid-column:1/-1}
+  #modes .mode.m3d{grid-column:1/-1}
+  #homeBody{overflow-y:auto;-webkit-overflow-scrolling:touch;touch-action:pan-y;padding-bottom:30px}
+  #home h1{font-size:22px;white-space:nowrap}
+  #home header{gap:6px;padding:8px 10px}
+  #home .rbtn{width:38px;height:38px;flex-basis:38px;font-size:18px}
+  .diff .rng{font-size:12px}
+  .card .foot{font-size:12px}
+  .cnt{font-size:11px;right:2px;bottom:2px;padding:0 4px}
+  .pill{font-size:15px;padding:3px 10px}
+  .wbtn{font-size:14px;padding:0 10px}
+  #editor header{gap:5px;padding:8px 8px}#editor header .rbtn{width:36px;height:36px;flex-basis:36px;font-size:17px}
+  #editor .wbtn .tx{display:none}#editor .wbtn{padding:0 9px;font-size:18px}
+  #game header{gap:5px;padding:8px 8px}#game header .rbtn{width:36px;height:36px;flex-basis:36px;font-size:17px}
+  #home header .rbtn{width:34px;height:34px;flex-basis:34px;font-size:16px}
+}

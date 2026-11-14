@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Fichitas</title>
+<style>
+/*@CSS*/
+</style>
+</head>
+<body>
+<!-- INICIO -->
+<div id="home" class="screen">
+  <header><h1>🧱 Fichitas</h1><span class="sp"></span><span class="pill" id="coins">🪙 0</span><span class="pill" id="total">⭐ 0</span><button class="rbtn mus" aria-label="Música">🎵</button><button class="rbtn snd" aria-label="Sonido">🔊</button><button class="rbtn" id="gear" aria-label="Papás">⚙️</button></header>
+  <div id="homeBody">
+    <div id="modes">
+      <button class="mode cont hidden" id="cont"></button>
+      <button class="mode free" id="goFree">🎨 Modo libre</button>
+      <button class="mode rescue" id="goRescue">🚨 Rescate</button>
+      <a class="mode m3d hidden" id="go3d" href="3d/">🧊 3D</a>
+      <button class="mode papa hidden" id="goPapa"></button>
+    </div>
+    <div id="diffs"></div>
+  </div>
+</div>
+<!-- MODELOS DE UN NIVEL -->
+<div id="menu" class="screen hidden">
+  <header><button class="rbtn" id="back" aria-label="Inicio">⬅️</button><span class="name" id="lvlName"></span><span class="sp"></span><span class="pill" id="lvlStars">⭐ 0</span></header>
+  <div id="levels"></div>
+</div>
+<!-- JUEGO -->
+<div id="game" class="screen hidden">
+  <header><button class="rbtn" id="homeBtn" aria-label="Modelos">🏠</button><span class="name" id="figName"></span><span class="sp"></span><span class="pill" id="bagPill"></span><span class="pill" id="scorePill">🎯 0</span><span class="pill" id="stars">⭐ 0</span><button class="rbtn mus" aria-label="Música">🎵</button><button class="rbtn snd" aria-label="Sonido">🔊</button></header>
+  <main>
+    <aside><div id="modelBox" class="panel"><div id="model"></div></div><div id="tray" class="panel"></div></aside>
+    <section class="stage" id="stage"><div class="wrap" id="boardWrap"><div class="board" id="board"></div><div class="plate" id="plate"></div></div></section>
+  </main>
+</div>
+<!-- EDITOR (modo libre / modo papá) -->
+<div id="editor" class="screen hidden">
+  <header><button class="rbtn" id="eBack" aria-label="Inicio">⬅️</button><span class="name" id="eTitle"></span><span class="sp"></span>
+    <span class="pill" id="eCount">🧱 0</span>
+    <button class="rbtn mus" aria-label="Música">🎵</button>
+    <button class="rbtn" id="eUndo" aria-label="Deshacer">↶</button>
+    <button class="rbtn" id="eRm" aria-label="Quitar">🧽</button>
+    <button class="rbtn" id="eClear" aria-label="Borrar todo">🗑️</button>
+    <button class="wbtn papaOnly" id="eImport">📥<span class="tx"> Traer modo libre</span></button>
+    <button class="wbtn gold papaOnly" id="eSave">💾<span class="tx"> Guardar</span></button></header>
+  <main>
+    <aside id="eAside"><div id="eColors" class="panel"></div><div id="eShapes" class="panel"></div><button id="moreL" class="more hidden" aria-label="Ver fichas">👈</button><button id="moreR" class="more hidden" aria-label="Ver más fichas">👉</button></aside>
+    <section class="stage" id="eStage"><div class="wrap" id="eWrap"><div class="board" id="eBoard"></div><div class="plate" id="ePlate"></div></div>
+      <div id="arrows" class="hidden"><button data-mv="L">◀</button><button data-mv="U">▲</button><button data-mv="D">▼</button><button data-mv="R">▶</button><button data-mv="X" class="del">🗑️</button><button data-mv="OK" class="ok">✓</button></div></section>
+  </main>
+</div>
+<!-- capas -->
+<div id="bag" class="ov"><button id="bagBtn"><span class="pk">📦</span><span class="n" id="bagN"></span><span class="s" id="bagS"></span></button></div>
+<div id="win" class="ov"><div class="box"><div class="star">⭐</div><h2>¡Lo lograste!</h2><div id="scoreLine"></div><div id="earn" class="earn"></div><div id="lockInfo" class="lockinfo hidden"></div>
+  <div class="btns"><button id="home2" aria-label="Modelos">🏠</button><button id="again" aria-label="Otra vez">↻</button><button id="next" aria-label="Siguiente">▶</button></div></div></div>
+<div id="buy" class="ov"><div class="box">
+  <div style="font-size:64px;line-height:1">🔓</div><h3 id="buyT"></h3><div id="buyP" class="earn"></div>
+  <div class="btns"><button id="buyNo" style="font-size:30px;width:72px;height:72px;background:#e8f4fb;box-shadow:0 5px 0 #9ccde6">✕</button><button id="buyOk" style="font-size:40px;width:96px;height:96px;background:#ffd84d;box-shadow:0 6px 0 #d4a900">✓</button></div>
+</div></div>
+<div id="parents" class="ov"><div class="box">
+  <h3>Solo papás</h3>
+  <div id="pcode"><div class="dots" id="pdots"></div><div class="keys" id="pkeys"></div></div>
+  <div id="popts" class="col hidden">
+    <button class="pbtn gold" id="pBuild">👨‍🔧 Construir un modelo</button>
+    <div class="col" id="pList"></div>
+    <button class="pbtn" id="pEnglish"></button>
+    <button class="pbtn" id="pHaptic"></button>
+    <button class="pbtn" id="pUnlock"></button>
+    <button class="pbtn" id="pBackup">💾 Guardar copia de seguridad</button>
+    <label class="pbtn" id="pRestoreL" style="cursor:pointer">📂 Recuperar copia<input type="file" id="pRestore" accept=".json,application/json" style="display:none"></label>
+    <div id="pMsg" style="font-weight:800;color:#2d8a2c;min-height:20px"></div>
+    <button class="pbtn warn" id="pReset">🗑️ Borrar avance y estrellas</button>
+  </div>
+  <button class="pbtn ghostb" id="pClose">Cerrar</button>
+</div></div>
+<div id="mixer" class="ov"><div class="box">
+  <h3>🎨 Mezclar colores</h3>
+  <div id="mixPot"></div><div id="mixDrops"></div>
+  <div style="font-weight:800;color:#5d86a0;font-size:14px">Toca colores para echar gotas en la olla</div>
+  <div id="mixPal"></div>
+  <div id="mixRow"><button class="pbtn ghostb" id="mixEmpty">↺ Vaciar</button><button class="pbtn gold" id="mixOk">✓ Guardar</button></div>
+  <details style="text-align:left;font-weight:800;color:#5d86a0"><summary>👨 Color exacto (papá)</summary><input type="color" id="mixPick" value="#3fa7d6"></details>
+  <button class="pbtn ghostb" id="mixClose">Cerrar</button>
+</div></div>
+<div id="saveDlg" class="ov"><div class="box">
+  <h3>Guardar modelo</h3>
+  <input id="sName" maxlength="24" placeholder="Nombre del modelo">
+  <div id="sEmos"></div>
+  <div id="sInfo" style="font-weight:800;color:#5d86a0"></div>
+  <button class="pbtn gold" id="sOk">💾 Guardar</button>
+  <button class="pbtn ghostb" id="sCancel">Cancelar</button>
+</div></div>
+<script>
+/*@JS*/
+</script>
+<div id="botbar"></div>
+<script>try{if(/netlify\.app$/.test(location.hostname)){document.documentElement.style.setProperty('--bot','58px');document.documentElement.classList.add('has-bot')}}catch(e){}</script>
+</body>
+</html>

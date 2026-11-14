@@ -1,0 +1,54 @@
+/* capas emergentes */
+.ov{position:fixed;inset:0;z-index:80;display:none;align-items:center;justify-content:center;background:rgba(20,60,90,.4)}
+.ov.show{display:flex}
+#bagBtn{border:0;background:none;display:flex;flex-direction:column;align-items:center;gap:6px;font-family:inherit;color:#fff;font-weight:900;text-shadow:0 2px 0 rgba(0,0,0,.25)}
+#bagBtn .pk{font-size:150px;line-height:1;animation:wob 1.2s ease-in-out infinite;filter:drop-shadow(0 8px 0 rgba(0,0,0,.2))}
+#bagBtn .n{font-size:34px}
+#bagBtn .s{font-size:18px;opacity:.9}
+#bag.open .pk{animation:openBag .45s ease-in forwards}
+.box{background:#fff;border-radius:28px;padding:22px 26px;width:min(380px,92vw);text-align:center;box-shadow:0 8px 0 #9ccde6;display:flex;flex-direction:column;gap:12px;max-height:92vh;overflow-y:auto}
+.box h3{font-size:22px}
+#win .box{width:auto;padding:26px 36px;animation:pop .5s}
+#win .star{font-size:90px;line-height:1;animation:spinIn .8s ease-out}
+#win h2{font-size:28px}
+.btns{display:flex;gap:18px;justify-content:center;align-items:center}
+.btns button{border:0;border-radius:50%;color:#24506b}
+#home2,#again{font-size:30px;width:72px;height:72px;background:#e8f4fb;box-shadow:0 5px 0 #9ccde6}
+#next{font-size:44px;width:100px;height:100px;background:#ffd84d;box-shadow:0 6px 0 #d4a900}
+.dots{display:flex;gap:12px;justify-content:center;height:22px}
+.dots i{width:18px;height:18px;border-radius:50%;border:3px solid #9ccde6;display:block}
+.dots i.on{background:#24506b;border-color:#24506b}
+.dots.bad{animation:nope .45s}
+.keys{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:6px}
+.keys button{border:0;border-radius:16px;background:#e8f4fb;box-shadow:0 3px 0 #9ccde6;font:inherit;font-size:26px;font-weight:800;color:#24506b;height:58px}
+.pbtn{border:0;border-radius:16px;background:#e8f4fb;box-shadow:0 3px 0 #9ccde6;font:inherit;font-size:18px;font-weight:800;color:#24506b;padding:14px}
+.pbtn.gold{background:#ffd84d;box-shadow:0 3px 0 #d4a900}
+.pbtn.warn{background:#ffe3e0;box-shadow:0 3px 0 #f0a9a1}
+.pbtn.ghostb{background:none;box-shadow:none;font-size:16px;padding:6px}
+.col{display:flex;flex-direction:column;gap:10px}
+.crow{display:flex;align-items:center;gap:8px;background:#f2f8fc;border-radius:14px;padding:8px 10px;font-weight:800;text-align:left}
+.crow span{flex:1}
+.crow button{border:0;background:#fff;border-radius:10px;font-size:18px;width:40px;height:36px;box-shadow:0 2px 0 #cfe3ef}
+#sName{font:inherit;font-size:20px;font-weight:800;color:#24506b;border:3px solid #9ccde6;border-radius:14px;padding:10px 12px;-webkit-user-select:text;user-select:text}
+#sEmos{display:grid;grid-template-columns:repeat(6,1fr);gap:6px}
+#sEmos button{border:0;background:#f2f8fc;border-radius:12px;font-size:26px;height:48px}
+#sEmos button.sel{background:#ffd84d}
+.conf{position:fixed;top:-20px;width:12px;height:18px;border-radius:3px;z-index:70;pointer-events:none;animation:fall linear forwards}
+@keyframes hop{0%,55%,100%{transform:translateY(0)}20%{transform:translateY(-14%)}38%{transform:translateY(0)}46%{transform:translateY(-5%)}}
+@keyframes nope{0%,100%{transform:translateX(0)}20%{transform:translateX(-9px) rotate(-5deg)}40%{transform:translateX(9px) rotate(5deg)}60%{transform:translateX(-6px)}80%{transform:translateX(6px)}}
+@keyframes gpulse{0%,100%{opacity:.3}50%{opacity:.75}}
+@keyframes spulse{0%,100%{opacity:.4}50%{opacity:.8}}
+@keyframes look{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-18%) scale(1.15)}}
+@keyframes pop{0%{transform:scale(1.12,.86)}60%{transform:scale(.96,1.05)}100%{transform:scale(1)}}
+@keyframes drop{from{transform:translateY(-160px);opacity:.3}to{transform:translateY(0);opacity:1}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes drive{0%{transform:translateX(0)}12%{transform:translateX(-4%)}100%{transform:translateX(160vw)}}
+@keyframes launch{0%,20%{transform:translate(0,0)}4%,12%{transform:translate(-3px,0)}8%,16%{transform:translate(3px,0)}100%{transform:translateY(-170vh)}}
+@keyframes sail{0%{transform:translate(0,0) rotate(0)}15%{transform:translate(-2%,0) rotate(-2deg)}30%{transform:translate(0,-1%) rotate(2deg)}100%{transform:translate(160vw,0) rotate(0)}}
+@keyframes flick{from{transform:scaleY(1)}to{transform:scaleY(1.35)}}
+@keyframes jump{0%,100%{transform:translateY(0) scale(1)}12%{transform:scale(1.1,.88)}45%{transform:translateY(-28%) scale(.95,1.06)}78%{transform:translateY(0) scale(1.08,.92)}}
+@keyframes sway{0%,100%{transform:rotate(0)}25%{transform:rotate(-7deg)}75%{transform:rotate(7deg)}}
+@keyframes fall{to{transform:translateY(110vh) rotate(720deg)}}
+@keyframes spinIn{from{transform:scale(0) rotate(-180deg)}to{transform:scale(1) rotate(0)}}
+@keyframes wob{0%,100%{transform:rotate(-6deg)}50%{transform:rotate(6deg) scale(1.05)}}
+@keyframes openBag{to{transform:scale(1.8);opacity:0}}

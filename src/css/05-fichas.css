@@ -1,0 +1,31 @@
+/* ---------- fichas (proporciones reales: botón 8 mm, ladrillo 9,6 mm, placa 3,2 mm) ---------- */
+.pc{position:absolute}
+.bd{position:absolute;inset:0}
+.stud{position:absolute;display:block}
+.k-ru{z-index:3}
+.eyeP{position:absolute;left:14%;width:72%;border-radius:50%;background:#fff;box-shadow:0 0 0 2px rgba(0,0,0,.55);display:block}
+.eyeP i{position:absolute;left:30%;top:26%;width:46%;height:46%;border-radius:50%;background:#222;display:block}
+.eyeP i::after{content:"";position:absolute;left:18%;top:16%;width:30%;height:30%;border-radius:50%;background:#fff}
+.fx{position:absolute;clip-path:polygon(12% 0,88% 0,96% 38%,76% 62%,66% 46%,50% 100%,34% 46%,24% 62%,4% 38%);background:linear-gradient(#fff3a0,#ffc92a 30%,#ff8a1f 65%,#e63b2e);transform-origin:50% 0;animation:flick .1s linear infinite alternate}
+/* silueta */
+.ghost{opacity:.12;filter:grayscale(1)}
+.ghost.far{opacity:.05}
+.ghost.now{opacity:.6;z-index:6;filter:drop-shadow(0 0 2px #ff6a00) drop-shadow(0 0 2px #ff6a00) drop-shadow(0 0 8px #ffcf33);animation:gpulse 1s ease-in-out infinite}
+/* ficha que sigue (sin ayuda): silueta oscura con borde naranja que parpadea */
+.ghost.shade{opacity:.6;z-index:6;filter:drop-shadow(0 0 1.5px #ff6a00) drop-shadow(0 0 1.5px #ff6a00) drop-shadow(0 0 1.5px #ff6a00) drop-shadow(0 0 10px #ffb000);animation:spulse 1.1s ease-in-out infinite}
+.ghost.look{animation:look .5s ease-in-out 3}
+#tray{position:relative}
+#tray.wait .tile{opacity:.35;filter:grayscale(.7)}
+#tray.wait::after{content:"⏳";position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:64px;animation:wob 1s ease-in-out infinite}
+.pop{animation:pop .3s ease-out;transform-origin:50% 100%}
+.drop{animation:drop .32s cubic-bezier(.5,0,.75,1)}
+.fly{position:fixed;z-index:50;transform-origin:0 0;pointer-events:none;filter:drop-shadow(0 8px 6px rgba(0,0,0,.25))}
+.rm .pc{cursor:pointer}
+.rm .pc:hover{filter:brightness(.8)}
+/* animaciones de victoria */
+.board.go-drive .car{animation:drive 2.6s cubic-bezier(.55,0,.85,.35) .3s forwards}
+.board.go-drive .k-ru .bd{animation:spin .35s linear infinite}
+.board.go-launch .car{animation:launch 2.8s cubic-bezier(.6,0,.9,.4) .3s forwards}
+.board.go-jump .car{animation:jump .9s ease-in-out .3s 3;transform-origin:50% 100%}
+.board.go-sway .car{animation:sway 1s ease-in-out .3s 3;transform-origin:50% 100%}
+.board.go-sail .car{animation:sail 3s ease-in-out .3s forwards}

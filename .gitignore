@@ -1,0 +1,4 @@
+__pycache__/
+tests/*.png
+tests/backup_*.json
+tests/bad.json
