@@ -1274,13 +1274,31 @@ function drawEditorBoard(){
 function freeAt(pcs,k,x,y,skip){const T=CAT[k];return !pcs.some((p,j)=>{if(j===skip)return false;const q=CAT[p.k];return p.x<x+T.w&&p.x+q.w>x&&p.y<y+T.h&&p.y+q.h>y})}
 // Encaja la ficha en el lugar apoyado más cercano al dedo (sobre la base o sobre otra ficha), como un Lego real
 function snapSpot(k,clientX,clientY,skip){
+  // imán: busca el hueco libre y apoyado más cercano al dedo, y prefiere los que quedan pegaditos a otra ficha
   const B=$('#eBoard'),br=B.getBoundingClientRect(),c=ed.C,T=CAT[k],pcs=edPieces().map((p,j)=>j===skip?{k:p.k,x:-99,y:-99}:p);
-  const px=(clientX-br.left)/c,fy=(br.bottom-clientY)/(c*PL)-T.h/2;
-  if(px<-1.5||px>E_COLS+1.5||clientY<br.top-c*2||clientY>br.bottom+c*3)return null;
-  const x=Math.max(0,Math.min(E_COLS-T.w,Math.round(px-T.w/2)));
-  const cand=new Set([0]);pcs.forEach(p=>{const q=CAT[p.k];if(p.x<x+T.w&&p.x+q.w>x)cand.add(p.y+q.h)});
-  let best=null;cand.forEach(y=>{if(y<0||y+T.h>E_ROWS||!freeAt(pcs,k,x,y))return;if(best===null||Math.abs(y-fy)<Math.abs(best-fy))best=y});
-  return best===null?null:{x,y:best};
+  const fx=(clientX-br.left)/c-T.w/2,fy=(br.bottom-clientY)/(c*PL)-T.h/2;
+  if(fx<-T.w-1.5||fx>E_COLS+1.5||clientY<br.top-c*2||clientY>br.bottom+c*3)return null;
+  const x0=Math.round(fx);let best=null,bs=1e9;
+  for(let x=x0-3;x<=x0+3;x++){
+    if(x<0||x+T.w>E_COLS)continue;
+    const cand=new Set([0]);pcs.forEach(p=>{const q=CAT[p.k];if(p.x<x+T.w&&p.x+q.w>x)cand.add(p.y+q.h);
+      if(p.x+q.w===x||p.x===x+T.w){cand.add(p.y);cand.add(p.y+q.h-T.h)}});
+    cand.forEach(y=>{
+      if(y<0||y+T.h>E_ROWS||!freeAt(pcs,k,x,y))return;
+      let sc=Math.abs(x-fx)+Math.abs(y-fy)*PL;
+      // pegadita de lado: otra ficha justo a la izquierda o derecha en la misma altura
+      const side=pcs.some(p=>{const q=CAT[p.k];return p.y<y+T.h&&p.y+q.h>y&&(p.x+q.w===x||p.x===x+T.w)});
+      // hueco de un botón al lado (queda "casi pegada"): se castiga
+      const gap=pcs.some(p=>{const q=CAT[p.k];return p.y<y+T.h&&p.y+q.h>y&&(p.x+q.w===x-1||p.x===x+T.w+1)});
+      // apoyada encima de otra ficha
+      const onTop=y>0&&pcs.some(p=>{const q=CAT[p.k];return p.y+q.h===y&&p.x<x+T.w&&p.x+q.w>x});
+      const held=y===0||onTop;               // apoyada en el suelo o sobre otra ficha
+      if(side&&held)sc-=1.2;if(gap&&!side)sc+=.8;if(onTop)sc-=.4;
+      if(!held)sc+=side?.3:9;                // flotando solo si queda alineada al lado de otra y el dedo está ahí
+      if(sc<bs){bs=sc;best={x,y}}
+    });
+  }
+  return bs>4.5?null:best;
 }
 function placeAt(k,spot){buzz(12);const pcs=edPieces();snapshot();pcs.push({k,c:k==='ru'?'x':ed.c,x:spot.x,y:spot.y});setPieces(pcs);sSnap();drawEditorBoard();
   const last=$('#eBoard').querySelector(`[data-i="${pcs.length-1}"]`);if(last){last.classList.add('pop');const r=last.getBoundingClientRect();sparks(r.left+r.width/2,r.bottom,COL[k==='ru'?'x':ed.c][0],8)}
@@ -1354,6 +1372,12 @@ $('#arrows').addEventListener('pointerdown',ev=>{
   const T=CAT[p.k],vs=T.h<=1?1:3,dx=mv==='L'?-1:mv==='R'?1:0,dy=mv==='U'?vs:mv==='D'?-vs:0;
   let nx=p.x+dx,ny=p.y+dy;
   if(mv==='D'&&ny<0)ny=0;
+  if(dy){ // imán vertical: niveles de fichas cercanas (base y techo, alineando abajo o arriba)
+    const lv=new Set([0]);pcs.forEach((q,j)=>{if(j===i)return;const Q=CAT[q.k];if(q.x+Q.w<p.x-1||q.x>p.x+T.w+1)return;
+      [q.y,q.y+Q.h,q.y+Q.h-T.h,q.y-T.h].forEach(v=>lv.add(v))});
+    const L=[...lv].filter(v=>v>=0&&(dy>0?v>p.y&&v<=p.y+dy:v<p.y&&v>=p.y+dy));
+    if(L.length)ny=dy>0?Math.min(...L):Math.max(...L);
+  }
   const ok=nx>=0&&nx+T.w<=E_COLS&&ny>=0&&ny+T.h<=E_ROWS&&(nx!==p.x||ny!==p.y)&&freeAt(pcs,p.k,nx,ny,i);
   if(!ok){const el=$('#eBoard').querySelector(`[data-i="${i}"]`);if(el){el.animate([{transform:'translateX(0)'},{transform:'translateX(-6px)'},{transform:'translateX(6px)'},{transform:'translateX(0)'}],{duration:250})}sPop();return}
   snapshot();p.x=nx;p.y=ny;setPieces(pcs);sTap();buzz(8);drawEditorBoard();
