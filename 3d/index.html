@@ -265,7 +265,7 @@ function frame(t){
     if(i<placed||(fall&&fall.i===i)){const p=STEPS[i];list.push(fall&&fall.i===i?Object.assign({},p,{free:true}):p);
       style.push(fall&&fall.i===i?{alpha:1,off:fall.off}:{alpha:1})}}
   if(!fall&&placed<STEPS.length){list.push(Object.assign({},STEPS[placed],{free:true}));
-    style.push({alpha:.35+.25*Math.sin(t/220),glow:'#ff7a00',edge:'rgba(255,122,0,.6)'})}
+    style.push({alpha:.6+.2*Math.sin(t/240),glow:'#ff7a00',edge:'rgba(255,122,0,.6)'})}
   drawScene(g,o,list,view,N,(p,i)=>i===0?{alpha:1}:style[i-1]);
   requestAnimationFrame(frame);
 }
