@@ -924,9 +924,7 @@ $('#eStage').addEventListener('pointerdown',ev=>{
   ac();const B=$('#eBoard'),br=B.getBoundingClientRect(),c=ed.C,pcs=edPieces();
   if(ed.rm){
     const el=ev.target.closest('.pc');if(!el||el.dataset.i===undefined)return;
-    const i=+el.dataset.i,p=pcs[i],T=CAT[p.k];
-    const onTop=pcs.some((q,j)=>j!==i&&q.y===p.y+T.h&&q.x<p.x+T.w&&q.x+CAT[q.k].w>p.x);
-    if(onTop){el.classList.remove('nope');void el.offsetWidth;el.style.animation='nope .45s';return}
+    const i=+el.dataset.i;
     snapshot();pcs.splice(i,1);setPieces(pcs);sPop();drawEditorBoard();return;
   }
   if(ev.target.closest('#arrows'))return;
