@@ -28,6 +28,7 @@ header .sp{flex:1}
 .mode.cont{background:#ffd84d;box-shadow:0 5px 0 #d4a900}
 .mode.free{background:#ff6fae;color:#fff;box-shadow:0 5px 0 #d63d82}
 .mode.rescue{background:#e63b2e;color:#fff;box-shadow:0 5px 0 #a82015}
+.mode.m3d{background:#8a4fc7;color:#fff;box-shadow:0 5px 0 #5f3191;text-decoration:none}
 .mode.papa{background:#2f6fdb;color:#fff;box-shadow:0 5px 0 #1d4a9e}
 #diffs{flex:1;min-height:0;display:grid;grid-template-columns:repeat(4,1fr);grid-auto-rows:1fr;gap:14px}
 .diff{position:relative;border:0;border-radius:26px;color:#fff;font-family:inherit;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;text-shadow:0 2px 0 rgba(0,0,0,.18);min-height:0}
@@ -195,6 +196,7 @@ aside{flex:0 0 clamp(210px,30vw,360px);display:flex;flex-direction:column;gap:12
   #modes{display:grid;grid-template-columns:1fr 1fr;gap:10px}
   .mode{font-size:17px;padding:10px 8px}
   .mode.cont{grid-column:1/-1}
+  #modes .mode.m3d{grid-column:1/-1}
   #homeBody{overflow-y:auto;-webkit-overflow-scrolling:touch;touch-action:pan-y;padding-bottom:30px}
   #home h1{font-size:22px;white-space:nowrap}
   #home header{gap:6px;padding:8px 10px}
@@ -216,6 +218,7 @@ aside{flex:0 0 clamp(210px,30vw,360px);display:flex;flex-direction:column;gap:12
       <button class="mode cont hidden" id="cont"></button>
       <button class="mode free" id="goFree">🎨 Modo libre</button>
       <button class="mode rescue" id="goRescue">🚨 Rescate</button>
+      <a class="mode m3d hidden" id="go3d" href="3d/">🧊 3D</a>
       <button class="mode papa hidden" id="goPapa"></button>
     </div>
     <div id="diffs"></div>
@@ -521,6 +524,7 @@ $('#diffs').addEventListener('click',ev=>{
   sTap();curLvl=n;show('menu');
 });
 $('#cont').addEventListener('click',()=>{ac();sTap();openFig(+$('#cont').dataset.i)});
+try{if(window.top===window&&/^https?:$/.test(location.protocol))$('#go3d').classList.remove('hidden')}catch(e){}
 $('#goRescue').addEventListener('click',()=>{ac();sTap();curLvl='rescate';show('menu')});
 $('#goPapa').addEventListener('click',()=>{ac();sTap();curLvl='papa';show('menu')});
 $('#goFree').addEventListener('click',()=>{ac();sTap();openEditor('free')});

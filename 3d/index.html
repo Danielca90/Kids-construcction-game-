@@ -3,8 +3,9 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-<title>Fichitas 3D – prueba</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
 <link rel="apple-touch-icon" href="../apple-touch-icon.png">
+<title>Fichitas 3D</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none}
 html,body{height:100%;overflow:hidden;touch-action:manipulation;font-family:ui-rounded,"SF Pro Rounded",system-ui,-apple-system,sans-serif;background:#cdeefd;color:#24506b}
@@ -44,45 +45,76 @@ canvas{display:block;width:100%;height:100%}
 @keyframes nope{0%,100%{transform:translateX(0)}25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
 @keyframes word{0%{transform:translate(-50%,20px) scale(.6);opacity:0}15%{transform:translate(-50%,0) scale(1.1);opacity:1}80%{opacity:1}100%{transform:translate(-50%,-25px);opacity:0}}
 @media (orientation:portrait){main{flex-direction:column-reverse}aside{flex:0 0 34%;flex-direction:row}#modelBox{flex:0 0 40%}}
+
+.hidden{display:none!important}
+#menu3d .grid{flex:1;min-height:0;overflow-y:auto;display:grid;grid-template-columns:repeat(2,1fr);grid-auto-rows:minmax(220px,1fr);gap:12px;padding:0 12px 12px;touch-action:pan-y}
+.card{border:0;background:#fff;border-radius:22px;box-shadow:0 4px 0 #9ccde6;display:flex;flex-direction:column;align-items:stretch;padding:8px;font-family:inherit;color:#24506b;min-height:0}
+.card canvas{flex:1;min-height:0;width:100%}
+.card .foot{font-size:16px;font-weight:800;padding:6px 0 2px}
+.back{text-decoration:none;display:flex;align-items:center;justify-content:center}
+@media (min-width:900px){#menu3d .grid{grid-template-columns:repeat(4,1fr)}}
 </style>
 </head>
 <body>
-<div class="screen">
-  <header><span class="name">🌳 Árbol 3D <span style="opacity:.6;font-size:15px">(prueba)</span></span><span class="sp"></span><span class="pill" id="left">🧱 0</span></header>
+<!-- MENÚ 3D -->
+<div class="screen" id="menu3d">
+  <header><a class="rbtn back" href="../" aria-label="Volver">🏠</a><span class="name">🧊 Modelos 3D</span><span class="sp"></span><span class="pill" id="totStars">⭐ 0</span></header>
+  <div class="grid" id="cards"></div>
+</div>
+<!-- JUEGO 3D -->
+<div class="screen hidden" id="game3d">
+  <header><button class="rbtn" id="back" aria-label="Modelos">⬅️</button><span class="name" id="gname"></span><span class="sp"></span><span class="pill" id="left">🧱 0</span></header>
   <main>
     <aside><div class="panel" id="modelBox"><canvas id="mini"></canvas></div><div class="panel" id="tray"></div></aside>
     <section id="stage"><canvas id="cv"></canvas>
       <div class="rot"><button class="rbtn" id="rl">⟲</button><button class="rbtn" id="rr">⟳</button></div></section>
   </main>
 </div>
-<div id="win"><div class="box"><div class="star">⭐</div><h2>¡Lo lograste!</h2><button id="again">↻</button></div></div>
+<div id="win"><div class="box"><div class="star">⭐</div><h2>¡Lo lograste!</h2><button id="again">↻</button> <button id="toMenu" style="margin-top:12px;font-size:34px;width:80px;height:80px;border:0;border-radius:50%;background:#e8f4fb;box-shadow:0 5px 0 #9ccde6">🏠</button></div></div>
 <script>
 // =====================================================================
-//  Motor isométrico propio (sin librerías): cada ficha se divide en celdas de 1 botón × 1 placa
-//  y se dibujan de atrás hacia adelante, así nunca se cruzan mal.
+//  FICHITAS 3D — modelos armados en 3D isométrico con fichas reales.
+//  Motor propio (sin librerías): cada ficha se parte en celdas de 1 botón × 1 placa y se dibuja de atrás hacia adelante.
 //  Medidas reales: botón 8 mm, placa 3,2 mm (0,4 botón), ladrillo = 3 placas, botón Ø 4,8 mm × 1,7 mm.
 // =====================================================================
 const COL={r:['#e3342a','#a8211a','#c42a21'],g:['#2fb24c','#1c7a31','#24963e'],n:['#8a5a33','#5c3a1f','#734a29'],
-  G:['#6cc04a','#3f8a2a','#56a63a'],k:['#b6bcc1','#7d8489','#9aa1a6']};
-const PLH=.4,STUD_R=.3,STUD_H=1.7/3.2;     // alto de placa en botones; botón: radio y alto (en placas)
-// ficha: k=forma, c=color, x/z en botones, y en placas, w/d ancho/fondo, h alto (placas), round = cilindro
+  G:['#6cc04a','#3f8a2a','#56a63a'],k:['#b6bcc1','#7d8489','#9aa1a6'],y:['#fac80a','#b88f00','#d9ad00'],
+  a:['#1f6fd1','#123f7d','#185aa8'],w:['#f4f4f4','#b9bec3','#d6dade'],x:['#3a3d40','#141516','#26292b'],
+  b:['#9fd8f2','#4f9cc0','#78bcdc'],o:['#fe8a18','#b35d00','#d97400']};
+const PLH=.4,STUD_R=.3,STUD_H=1.7/3.2;
 const P=(k,c,x,y,z,w,d,h,round)=>({k,c,x,y,z,w,d,h,round:!!round});
-const BASE=P('base','G',0,0,0,8,8,1);       // base verde fija 8x8
-// Árbol: tronco 2x2 ×2, copa de 2x4 cruzados (técnica real de Lego), punta 2x2 y manzanas redondas
-const STEPS=[
-  P('b22','n',3,1,3,2,2,3),        // tronco
-  P('b22','n',3,4,3,2,2,3),
-  P('b24','g',2,7,2,4,2,3),        // copa: capa 1 (2x4 acostados)
-  P('b24','g',2,7,4,4,2,3),
-  P('b24','g',2,10,2,2,4,3),       // capa 2 cruzada (2x4 de pie) — así se traban
-  P('b24','g',4,10,2,2,4,3),
-  P('b22','g',3,13,3,2,2,3),       // punta
-  P('r11','r',2,13,2,1,1,3,1),     // manzanas
-  P('r11','r',5,13,5,1,1,3,1),
-  P('r11','r',2,13,5,1,1,3,1)
+// ayudantes: ladrillo (3 placas de alto), placa (1), redondo 1x1
+const B=(c,x,y,z,w,d)=>P('b',c,x,y,z,w,d,3);
+const PL_=(c,x,y,z,w,d)=>P('p',c,x,y,z,w,d,1);
+const RD=(c,x,y,z)=>P('r',c,x,y,z,1,1,3,1);
+// tipo de ficha para la bandeja: forma + medidas (2x4 de pie o acostado es la misma ficha) + color
+const KEY=s=>(s.round?'rd':s.k+Math.min(s.w,s.d)+'x'+Math.max(s.w,s.d))+s.c;
+const NAME=s=>s.round?'round brick':s.k==='p'?'plate':'brick';
+const CNAME={r:'red',g:'green',n:'brown',k:'gray',y:'yellow',a:'blue',w:'white',x:'black',b:'light blue',o:'orange',G:'green'};
+
+// ================== MODELOS 3D ==================
+// N = tamaño de la base (cuadrada). y en placas: la base ocupa la placa 0, las fichas empiezan en y=1.
+const MODELS3D=[
+ {id:'t3_torre',name:'Torre',emo:'🗼',N:4,base:'G',steps:[
+   B('r',1,1,1,2,2),B('y',1,4,1,2,2),B('a',1,7,1,2,2),RD('w',1,10,1)]},
+ {id:'t3_arbol',name:'Árbol',emo:'🌳',N:8,base:'G',steps:[
+   B('n',3,1,3,2,2),B('n',3,4,3,2,2),
+   B('g',2,7,2,4,2),B('g',2,7,4,4,2),                  // copa: capa acostada
+   B('g',2,10,2,2,4),B('g',4,10,2,2,4),                // capa cruzada encima (así se traban)
+   B('g',3,13,3,2,2),RD('r',2,13,2),RD('r',5,13,5),RD('r',2,13,5)]},
+ {id:'t3_robot',name:'Robot',emo:'🤖',N:6,base:'k',steps:[
+   B('x',1,1,2,2,2),B('x',3,1,2,2,2),                  // pies
+   B('a',1,4,2,1,2),B('a',4,4,2,1,2),                  // piernas
+   B('a',1,7,2,4,2),B('r',1,10,2,4,2),B('a',1,13,2,4,2),  // cuerpo con pecho rojo
+   B('k',0,10,2,1,2),B('k',5,10,2,1,2),RD('k',0,7,3),RD('k',5,7,3),   // brazos y manos
+   PL_('x',2,16,2,2,2),B('w',1,17,2,4,2),RD('r',2,20,2),RD('y',3,20,3)]},  // cuello, cabeza, antenas
+ {id:'t3_casa',name:'Casa',emo:'🏠',N:8,base:'G',steps:[
+   B('y',1,1,2,4,2),B('y',5,1,2,2,2),B('y',1,1,4,2,2),B('n',3,1,4,2,2),B('y',5,1,4,2,2),   // piso 1 (puerta café)
+   B('y',1,4,2,2,4),B('y',3,4,2,2,2),B('n',3,4,4,2,2),B('y',5,4,2,2,2),B('b',5,4,4,2,2),   // piso 2 (ventana celeste) trabado
+   B('y',1,7,2,4,2),B('y',1,7,4,4,2),B('y',5,7,2,2,4),
+   B('r',1,10,2,6,2),B('r',1,10,4,6,2),B('r',2,13,3,4,2),                                  // techo escalonado
+   B('k',5,16,3,1,1)]}
 ];
-const KEY=s=>s.k+s.c;
-const NAME={b22:'brick',b24:'brick',r11:'round brick'},CNAME={r:'red',g:'green',n:'brown'};
 
 // ---------------- dibujo ----------------
 const R3=Math.sqrt(3)/2;
@@ -173,73 +205,98 @@ function click(){const a=ac();if(!a)return;try{const b=a.createBuffer(1,a.sample
 function say(t){try{const u=new SpeechSynthesisUtterance(t);u.lang='en-US';u.rate=.85;u.pitch=1.15;speechSynthesis.cancel();speechSynthesis.speak(u)}catch(e){}}
 function word(t){document.querySelectorAll('.word').forEach(w=>w.remove());const d=document.createElement('div');d.className='word';d.textContent=t;document.getElementById('stage').appendChild(d);setTimeout(()=>d.remove(),1700)}
 
-// ---------------- juego ----------------
+
+// ================== PROGRESO (guardado en el aparato) ==================
+const SKEY='fichitas3d';
+let save3={stars:{}};try{const s=JSON.parse(localStorage.getItem(SKEY));if(s)save3=Object.assign(save3,s)}catch(e){}
+function persist3(){try{localStorage.setItem(SKEY,JSON.stringify(save3))}catch(e){}}
+
+// ================== MENÚ ==================
 const $=s=>document.querySelector(s);
+function baseOf(M){return P('base',M.base,0,0,0,M.N,M.N,1)}
+function renderMenu(){
+  $('#totStars').textContent='⭐ '+Object.values(save3.stars).reduce((a,b)=>a+b,0);
+  const C=$('#cards');C.innerHTML='';
+  MODELS3D.forEach((M,i)=>{const b=document.createElement('button');b.className='card';b.dataset.i=i;
+    const s=save3.stars[M.id]||0;
+    b.innerHTML=`<canvas></canvas><div class="foot">${M.emo} ${M.name} · 🧱 ${M.steps.length}${s?' · ⭐ '+s:''}</div>`;C.appendChild(b)});
+  requestAnimationFrame(()=>C.querySelectorAll('.card').forEach(b=>{const M=MODELS3D[+b.dataset.i],cv=b.querySelector('canvas');
+    const g=sizeCanvas(cv),all=[baseOf(M),...M.steps];drawScene(g,fit(cv,all,0,M.N,.1),all,0,M.N,()=>({alpha:1}))}));
+}
+$('#cards').addEventListener('click',e=>{const b=e.target.closest('.card');if(!b)return;ac();openModel(+b.dataset.i)});
+
+// ================== JUEGO ==================
 const cv=$('#cv'),mini=$('#mini'),tray=$('#tray');
-let placed=0,rot=0,fall=null,busy=false,wrong=0,spin=0;
-const N=8;
+let M=null,STEPS=[],N=8,BASE=null,placed=0,rot=0,fall=null,busy=false,wrong=0,spin=0,running=false,miniEnd=0,order=[];
 const helped=()=>placed<2;
-// iconos de la bandeja: cada tipo de ficha dibujado solo
+const MINI_KEYS=4;
+function newMini(){const ks=[];let e=placed;while(e<STEPS.length){const k=KEY(STEPS[e]);if(!ks.includes(k)){if(ks.length>=MINI_KEYS)break;ks.push(k)}e++}
+  miniEnd=e;order=ks.sort(()=>Math.random()-.5)}
 const ICON={};
-function makeIcons(){
-  STEPS.forEach(s=>{const k=KEY(s);if(ICON[k])return;const c=document.createElement('canvas');c.width=220;c.height=170;const g=c.getContext('2d');
-    const p=Object.assign({},s,{x:0,z:0,y:0});if(p.d>p.w){p.w=s.d;p.d=s.w}   // 2x4 siempre mostrado igual
-    const o=fit(c,[p],0,4,.12);drawScene(g,o,[p],0,4,()=>({alpha:1}));ICON[k]=c.toDataURL()})}
-function remaining(k){let n=0;for(let i=placed;i<STEPS.length;i++)if(KEY(STEPS[i])===k)n++;return n}
-function renderTray(){
-  tray.innerHTML='';const ks=[...new Set(STEPS.map(KEY))];
-  ks.forEach(k=>{const n=remaining(k),t=document.createElement('button');t.className='tile'+(n?'':' used');t.dataset.k=k;
+function iconFor(s){const k=KEY(s);if(ICON[k])return ICON[k];const c=document.createElement('canvas');c.width=220;c.height=170;const g=c.getContext('2d');
+  const p=Object.assign({},s,{x:0,z:0,y:0});if(p.d>p.w){p.w=s.d;p.d=s.w}
+  const o=fit(c,[p],0,8,.12);drawScene(g,o,[p],0,8,()=>({alpha:1}));return ICON[k]=c.toDataURL()}
+function remaining(k){let n=0;for(let i=placed;i<miniEnd;i++)if(KEY(STEPS[i])===k)n++;return n}
+function renderTray(fresh){
+  if(placed<STEPS.length&&placed>=miniEnd){newMini();fresh=true}
+  tray.innerHTML='';
+  order.forEach(k=>{const n=remaining(k),s=STEPS.slice(placed,miniEnd).find(q=>KEY(q)===k)||STEPS.find(q=>KEY(q)===k);
+    const t=document.createElement('button');t.className='tile'+(n?'':' used');t.dataset.k=k;
     if(n&&placed<STEPS.length&&k===KEY(STEPS[placed])&&helped())t.classList.add('next');
-    t.innerHTML=`<img src="${ICON[k]}">${n>1?`<span class="cnt">×${n}</span>`:''}`;tray.appendChild(t)});
+    t.innerHTML=`<img src="${iconFor(s)}">${n>1?`<span class="cnt">×${n}</span>`:''}`;
+    if(fresh)t.animate([{transform:'scale(.6)',opacity:0},{transform:'scale(1)',opacity:1}],{duration:350,easing:'ease-out'});
+    tray.appendChild(t)});
   $('#left').textContent='🧱 '+(STEPS.length-placed);
 }
+function openModel(i){
+  M=MODELS3D[i];STEPS=M.steps;N=M.N;BASE=baseOf(M);placed=0;rot=0;fall=null;busy=false;wrong=0;spin=0;miniEnd=0;
+  $('#gname').textContent=M.emo+' '+M.name;$('#win').classList.remove('show');
+  $('#menu3d').classList.add('hidden');$('#game3d').classList.remove('hidden');
+  requestAnimationFrame(()=>{drawMini();renderTray();if(!running){running=true;requestAnimationFrame(frame)}});
+}
+function toMenu(){$('#win').classList.remove('show');$('#game3d').classList.add('hidden');$('#menu3d').classList.remove('hidden');M=null;renderMenu()}
 function frame(t){
-  const g=sizeCanvas(cv);
-  const all=[BASE,...STEPS];
-  let o=fit(cv,all,rot,N,.18);
-  // giro de celebración: rota la vista paso a paso
-  const view=(rot+Math.floor(spin))&3;
-  if(spin){o=fit(cv,all,view,N,.18)}
-  const list=[BASE];
-  const style=[];
+  if(!M){running=false;return}
+  const g=sizeCanvas(cv),all=[BASE,...STEPS],view=(rot+Math.floor(spin))&3,o=fit(cv,all,view,N,.18);
+  const list=[BASE],style=[];
   for(let i=0;i<STEPS.length;i++){
     if(i<placed||(fall&&fall.i===i)){const p=STEPS[i];list.push(fall&&fall.i===i?Object.assign({},p,{free:true}):p);
-      style.push(fall&&fall.i===i?{alpha:1,off:fall.off}:{alpha:1})}
-  }
-  // fantasma de la ficha que sigue
-  if(!fall&&placed<STEPS.length){const p=Object.assign({},STEPS[placed],{free:true});list.push(p);
-    const pulse=.35+.25*Math.sin(t/220);style.push({alpha:pulse,glow:'#ff7a00',edge:'rgba(255,122,0,.6)'})}
+      style.push(fall&&fall.i===i?{alpha:1,off:fall.off}:{alpha:1})}}
+  if(!fall&&placed<STEPS.length){list.push(Object.assign({},STEPS[placed],{free:true}));
+    style.push({alpha:.35+.25*Math.sin(t/220),glow:'#ff7a00',edge:'rgba(255,122,0,.6)'})}
   drawScene(g,o,list,view,N,(p,i)=>i===0?{alpha:1}:style[i-1]);
   requestAnimationFrame(frame);
 }
-function drawMini(){const g=sizeCanvas(mini);const all=[BASE,...STEPS];const o=fit(mini,all,rot,N,.14);drawScene(g,o,all,rot,N,()=>({alpha:1}))}
+function drawMini(){const g=sizeCanvas(mini),all=[BASE,...STEPS];drawScene(g,fit(mini,all,rot,N,.14),all,rot,N,()=>({alpha:1}))}
 tray.addEventListener('pointerdown',ev=>{
-  ac();const t=ev.target.closest('.tile');if(!t||busy||placed>=STEPS.length)return;
-  if(t.dataset.k!==KEY(STEPS[placed])){t.classList.remove('nope');void t.offsetWidth;t.classList.add('nope');tone(260,0,.12,'sine',.15);say('Oops! Try again.');
+  ac();const t=ev.target.closest('.tile');if(!t||busy||placed>=STEPS.length||t.classList.contains('used'))return;
+  if(t.dataset.k!==KEY(STEPS[placed])){t.classList.remove('nope');void t.offsetWidth;t.classList.add('nope');tone(260,0,.12,'sine',.15);say('Oops! Try again.');word('Oops!');
     wrong=Math.min(wrong+1,3);busy=true;tray.classList.add('wait');setTimeout(()=>{busy=false;tray.classList.remove('wait')},[0,1500,3000,5000][wrong]);return}
   wrong=0;dropPiece();
 });
+const SCALE=[523,587,659,784,880,1047,1175,1319,1568,1760];
 function dropPiece(){
   busy=true;const i=placed,start=performance.now(),H=14;
   fall={i,off:H};tone(500,0,.2,'sine',.06);
   const step=now=>{const k=Math.min(1,(now-start)/520);
-    // cae acelerando y rebota un poquito al llegar
     fall.off=k<.8?H*(1-Math.pow(k/.8,2)):Math.sin((k-.8)/.2*Math.PI)*1.1;
-    if(k<1)requestAnimationFrame(step);else{fall=null;placed++;click();tone([523,587,659,784,880,1047,1175,1319,1568,1760][i],.02,.22);
-      const s=STEPS[i];const nm=CNAME[s.c]+' '+NAME[s.k];word(nm.charAt(0).toUpperCase()+nm.slice(1));say(nm+'!');
-      busy=false;renderTray();if(placed===STEPS.length)win()}};
+    if(k<1)requestAnimationFrame(step);else{fall=null;placed++;click();tone(SCALE[i%SCALE.length],.02,.22);
+      const s=STEPS[i],nm=CNAME[s.c]+' '+NAME(s);word(nm.charAt(0).toUpperCase()+nm.slice(1));say(nm+'!');
+      busy=false;const fresh=placed<STEPS.length&&placed>=miniEnd;if(fresh)tone(784,.1,.2);renderTray(fresh);if(placed===STEPS.length)win()}};
   requestAnimationFrame(step);
 }
 function win(){busy=true;say('Good job! You did it!');[523,659,784,1047].forEach((f,j)=>tone(f,j*.13,.3));
+  save3.stars[M.id]=(save3.stars[M.id]||0)+1;persist3();
   const t0=performance.now();const sp=now=>{spin=Math.min(4,(now-t0)/350);if(spin<4)requestAnimationFrame(sp);else{spin=0;$('#win').classList.add('show')}};requestAnimationFrame(sp)}
-$('#again').addEventListener('click',()=>{placed=0;busy=false;$('#win').classList.remove('show');renderTray()});
+$('#again').addEventListener('click',()=>{const i=MODELS3D.indexOf(M);openModel(i)});
+$('#toMenu').addEventListener('click',toMenu);
+$('#back').addEventListener('click',toMenu);
 $('#rl').addEventListener('click',()=>{rot=(rot+3)&3;drawMini()});
 $('#rr').addEventListener('click',()=>{rot=(rot+1)&3;drawMini()});
-// girar deslizando el dedo sobre el escenario
 let sx=null;$('#stage').addEventListener('pointerdown',e=>{if(e.target.closest('.rbtn'))return;sx=e.clientX});
 window.addEventListener('pointerup',e=>{if(sx===null)return;const d=e.clientX-sx;sx=null;if(Math.abs(d)>40){rot=(rot+(d>0?1:3))&3;drawMini()}});
-window.addEventListener('resize',()=>{drawMini();renderTray()});
-makeIcons();renderTray();drawMini();requestAnimationFrame(frame);
+window.addEventListener('resize',()=>{if(M){drawMini();renderTray()}else renderMenu()});
+renderMenu();
 </script>
 </body>
 </html>
