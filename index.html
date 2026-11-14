@@ -101,6 +101,13 @@ aside{flex:0 0 clamp(210px,30vw,360px);display:flex;flex-direction:column;gap:12
 #tray{grid-template-columns:1fr!important;grid-auto-rows:1fr}
 #eColors{flex:0 0 auto;padding:12px;display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
 #editor{touch-action:none}
+.sel-pc{filter:drop-shadow(0 0 2px #ff6a00) drop-shadow(0 0 2px #ff6a00) drop-shadow(0 0 7px #ffb000);z-index:7}
+#arrows{position:absolute;left:50%;top:12px;transform:translateX(-50%);display:flex;gap:8px;z-index:20;background:rgba(255,255,255,.92);padding:8px;border-radius:22px;box-shadow:0 4px 0 #9ccde6}
+#arrows button{border:0;width:56px;height:56px;border-radius:16px;background:#e8f4fb;box-shadow:0 3px 0 #9ccde6;font-size:26px;font-weight:900;color:#24506b;font-family:inherit}
+#arrows button:active{transform:scale(.92)}
+#arrows .del{background:#ffe3e0;box-shadow:0 3px 0 #f0a9a1}
+#arrows .ok{background:#ffd84d;box-shadow:0 3px 0 #d4a900}
+@media (orientation:portrait){#arrows button{width:46px;height:46px;font-size:22px}}
 .preview{opacity:.6;filter:drop-shadow(0 0 2px #ff6a00) drop-shadow(0 0 2px #ff6a00) drop-shadow(0 0 8px #ffcf33);pointer-events:none;z-index:8}
 .dragging{position:fixed;z-index:60;pointer-events:none;filter:drop-shadow(0 10px 8px rgba(0,0,0,.3))}
 .sw{border:0;aspect-ratio:1;border-radius:50%;box-shadow:inset 0 -4px 0 rgba(0,0,0,.25)}
@@ -267,7 +274,8 @@ aside{flex:0 0 clamp(210px,30vw,360px);display:flex;flex-direction:column;gap:12
     <button class="wbtn gold papaOnly" id="eSave">💾 Guardar</button></header>
   <main>
     <aside><div id="eColors" class="panel"></div><div id="eShapes" class="panel"></div></aside>
-    <section class="stage" id="eStage"><div class="wrap" id="eWrap"><div class="board" id="eBoard"></div><div class="plate" id="ePlate"></div></div></section>
+    <section class="stage" id="eStage"><div class="wrap" id="eWrap"><div class="board" id="eBoard"></div><div class="plate" id="ePlate"></div></div>
+      <div id="arrows" class="hidden"><button data-mv="L">◀</button><button data-mv="U">▲</button><button data-mv="D">▼</button><button data-mv="R">▶</button><button data-mv="X" class="del">🗑️</button><button data-mv="OK" class="ok">✓</button></div></section>
   </main>
 </div>
 <!-- capas -->
@@ -1221,10 +1229,10 @@ const C_SIMPLE=['r','y','a','g','o','w','x','m','n','b'];
 let E_COLS=14,E_ROWS=30,E_SHAPES=E_SIMPLE;
 function edDims(){const papa=ed.mode==='papa';E_COLS=papa?20:14;E_ROWS=papa?45:30;E_SHAPES=papa?E_FULL:E_SIMPLE}
 const E_EMOS=['🚗','🏠','🤖','🦖','🚀','🏰','⛵','🐶','🌳','✈️','🚜','⭐'];
-let ed={mode:'free',k:'b2',c:'r',rm:false,hist:[],C:30,sure:false};
+let ed={mode:'free',k:'b2',c:'r',rm:false,hist:[],C:30,sure:false,sel:-1};
 const edPieces=()=>ed.mode==='free'?save.free:save.draft.pieces;
 function setPieces(a){if(ed.mode==='free')save.free=a;else save.draft.pieces=a;persist()}
-function openEditor(mode){ed.mode=mode;ed.rm=false;ed.hist=[];ed.sure=false;edDims();if(mode==='free'&&!C_SIMPLE.includes(ed.c))ed.c='r';if(!E_SHAPES.includes(ed.k))ed.k='b2';show('editor')}
+function openEditor(mode){ed.mode=mode;ed.sel=-1;ed.rm=false;ed.hist=[];ed.sure=false;edDims();if(mode==='free'&&!C_SIMPLE.includes(ed.c))ed.c='r';if(!E_SHAPES.includes(ed.k))ed.k='b2';show('editor')}
 function renderEditor(){
   const papa=ed.mode==='papa';
   $('#eTitle').textContent=papa?(save.draft.id?'👨‍🔧 Editando: '+(save.custom.find(c=>c.id===save.draft.id)||{}).name:'👨‍🔧 Modelo nuevo'):'🎨 Modo libre';
@@ -1257,20 +1265,21 @@ function drawEditorBoard(){
   g.style.backgroundImage=`linear-gradient(90deg,rgba(36,80,107,.07) 1px,transparent 1px),linear-gradient(rgba(36,80,107,.07) 1px,transparent 1px)`;
   g.style.backgroundSize=`${c}px ${3*PL*c}px`;g.style.backgroundPosition=`0 ${RS*c%(3*PL*c)}px`;B.appendChild(g);
   const fr=document.createDocumentFragment();
-  edPieces().forEach((p,i)=>{const s=P(p.k,p.c,p.x,p.y),el=at(pieceEl(s,c),s,c,E_ROWS);el.dataset.i=i;fr.appendChild(el)});
+  edPieces().forEach((p,i)=>{const s=P(p.k,p.c,p.x,p.y),el=at(pieceEl(s,c),s,c,E_ROWS);el.dataset.i=i;if(i===ed.sel)el.classList.add('sel-pc');fr.appendChild(el)});
+  $('#arrows').classList.toggle('hidden',!(ed.sel>=0&&ed.sel<edPieces().length));
   B.appendChild(fr);
   $('#eCount').textContent='🧱 '+edPieces().length;
 }
 // ¿cabe la ficha ahí sin chocar?
-function freeAt(pcs,k,x,y){const T=CAT[k];return !pcs.some(p=>{const q=CAT[p.k];return p.x<x+T.w&&p.x+q.w>x&&p.y<y+T.h&&p.y+q.h>y})}
+function freeAt(pcs,k,x,y,skip){const T=CAT[k];return !pcs.some((p,j)=>{if(j===skip)return false;const q=CAT[p.k];return p.x<x+T.w&&p.x+q.w>x&&p.y<y+T.h&&p.y+q.h>y})}
 // Encaja la ficha en el lugar apoyado más cercano al dedo (sobre la base o sobre otra ficha), como un Lego real
-function snapSpot(k,clientX,clientY){
-  const B=$('#eBoard'),br=B.getBoundingClientRect(),c=ed.C,T=CAT[k],pcs=edPieces();
+function snapSpot(k,clientX,clientY,skip){
+  const B=$('#eBoard'),br=B.getBoundingClientRect(),c=ed.C,T=CAT[k],pcs=edPieces().map((p,j)=>j===skip?{k:p.k,x:-99,y:-99}:p);
   const px=(clientX-br.left)/c,fy=(br.bottom-clientY)/(c*PL)-T.h/2;
   if(px<-1.5||px>E_COLS+1.5||clientY<br.top-c*2||clientY>br.bottom+c*3)return null;
   const x=Math.max(0,Math.min(E_COLS-T.w,Math.round(px-T.w/2)));
   const cand=new Set([0]);pcs.forEach(p=>{const q=CAT[p.k];if(p.x<x+T.w&&p.x+q.w>x)cand.add(p.y+q.h)});
-  let best=null;cand.forEach(y=>{if(y+T.h>E_ROWS||!freeAt(pcs,k,x,y))return;if(best===null||Math.abs(y-fy)<Math.abs(best-fy))best=y});
+  let best=null;cand.forEach(y=>{if(y<0||y+T.h>E_ROWS||!freeAt(pcs,k,x,y))return;if(best===null||Math.abs(y-fy)<Math.abs(best-fy))best=y});
   return best===null?null:{x,y:best};
 }
 function placeAt(k,spot){buzz(12);const pcs=edPieces();snapshot();pcs.push({k,c:k==='ru'?'x':ed.c,x:spot.x,y:spot.y});setPieces(pcs);sSnap();drawEditorBoard();
@@ -1310,12 +1319,49 @@ $('#eStage').addEventListener('pointerdown',ev=>{
     if(onTop){el.classList.remove('nope');void el.offsetWidth;el.style.animation='nope .45s';return}
     snapshot();pcs.splice(i,1);setPieces(pcs);sPop();drawEditorBoard();return;
   }
+  if(ev.target.closest('#arrows'))return;
+  const el=ev.target.closest('.pc');
+  if(el&&el.dataset.i!==undefined){pmove={i:+el.dataset.i,x0:ev.clientX,y0:ev.clientY,moved:false,el:null};return}
+  if(ed.sel>=0){ed.sel=-1;drawEditorBoard();return}            // tocar vacío: suelta la selección
   const spot=snapSpot(ed.k,ev.clientX,ev.clientY);
   if(!spot){sPop();return}
   placeAt(ed.k,spot);
 });
-$('#eUndo').addEventListener('pointerdown',()=>{ac();if(!ed.hist.length)return;setPieces(JSON.parse(ed.hist.pop()));sPop();drawEditorBoard()});
-$('#eRm').addEventListener('pointerdown',()=>{ac();ed.rm=!ed.rm;renderEditor()});
+// mover una ficha ya puesta: tocar = seleccionar (flechas), arrastrar = llevarla a otro lugar
+let pmove=null;
+document.addEventListener('pointermove',ev=>{if(!pmove)return;
+  if(!pmove.moved&&Math.hypot(ev.clientX-pmove.x0,ev.clientY-pmove.y0)<10)return;
+  const p=edPieces()[pmove.i];if(!p)return;
+  if(!pmove.moved){pmove.moved=true;ed.sel=-1;const s=P(p.k,p.c,0,0);pmove.el=pieceEl(s,ed.C);pmove.el.classList.add('dragging');document.body.appendChild(pmove.el);
+    pmove.w=CAT[p.k].w*ed.C;pmove.h=CAT[p.k].h*ed.C*PL;const src=$('#eBoard').querySelector(`[data-i="${pmove.i}"]`);if(src)src.style.opacity='.25'}
+  pmove.el.style.left=(ev.clientX-pmove.w/2)+'px';pmove.el.style.top=(ev.clientY-pmove.h-30)+'px';
+  const spot=snapSpot(p.k,ev.clientX,ev.clientY-30-pmove.h/2,pmove.i);
+  if(preview){preview.remove();preview=null}
+  if(spot){preview=at(pieceEl(P(p.k,p.c,spot.x,spot.y),ed.C),P(p.k,'x',spot.x,spot.y),ed.C,E_ROWS);preview.classList.add('preview');$('#eBoard').appendChild(preview)}
+},{passive:true});
+document.addEventListener('pointerup',ev=>{if(!pmove)return;const m=pmove;pmove=null;
+  if(!m.moved){ed.sel=ed.sel===m.i?-1:m.i;sTap();drawEditorBoard();if(ed.sel>=0){const p=edPieces()[ed.sel];say(cap((p.k==='ru'?'':EN_COL[p.c]+' ')+enShape(p.k)))}return}
+  m.el.remove();if(preview){preview.remove();preview=null}
+  const pcs=edPieces(),p=pcs[m.i],spot=snapSpot(p.k,ev.clientX,ev.clientY-30-m.h/2,m.i);
+  if(spot){snapshot();p.x=spot.x;p.y=spot.y;setPieces(pcs);sSnap();buzz(12)}else sPop();
+  drawEditorBoard();
+});
+// flechas: ◀ ▶ de a un botón, ▲ ▼ de a un ladrillo (o una placa si la ficha es plana)
+$('#arrows').addEventListener('pointerdown',ev=>{
+  ev.stopPropagation();const b=ev.target.closest('button');if(!b)return;ac();
+  const pcs=edPieces(),i=ed.sel,p=pcs[i];if(!p)return;
+  const mv=b.dataset.mv;
+  if(mv==='OK'){ed.sel=-1;sTap();drawEditorBoard();return}
+  if(mv==='X'){snapshot();pcs.splice(i,1);setPieces(pcs);ed.sel=-1;sPop();drawEditorBoard();return}
+  const T=CAT[p.k],vs=T.h<=1?1:3,dx=mv==='L'?-1:mv==='R'?1:0,dy=mv==='U'?vs:mv==='D'?-vs:0;
+  let nx=p.x+dx,ny=p.y+dy;
+  if(mv==='D'&&ny<0)ny=0;
+  const ok=nx>=0&&nx+T.w<=E_COLS&&ny>=0&&ny+T.h<=E_ROWS&&(nx!==p.x||ny!==p.y)&&freeAt(pcs,p.k,nx,ny,i);
+  if(!ok){const el=$('#eBoard').querySelector(`[data-i="${i}"]`);if(el){el.animate([{transform:'translateX(0)'},{transform:'translateX(-6px)'},{transform:'translateX(6px)'},{transform:'translateX(0)'}],{duration:250})}sPop();return}
+  snapshot();p.x=nx;p.y=ny;setPieces(pcs);sTap();buzz(8);drawEditorBoard();
+});
+$('#eUndo').addEventListener('pointerdown',()=>{ac();ed.sel=-1;if(!ed.hist.length)return;setPieces(JSON.parse(ed.hist.pop()));sPop();drawEditorBoard()});
+$('#eRm').addEventListener('pointerdown',()=>{ac();ed.sel=-1;ed.rm=!ed.rm;renderEditor()});
 $('#eClear').addEventListener('pointerdown',()=>{ac();if(!edPieces().length)return;
   if(!ed.sure){ed.sure=true;renderEditor();setTimeout(()=>{if(ed.sure){ed.sure=false;if(screen==='editor')renderEditor()}},2500);return}
   ed.sure=false;snapshot();setPieces([]);sPop();renderEditor()});
