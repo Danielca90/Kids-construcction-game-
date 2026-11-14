@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Fichitas 3D – prueba</title>
+<link rel="apple-touch-icon" href="../apple-touch-icon.png">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none}
+html,body{height:100%;overflow:hidden;touch-action:manipulation;font-family:ui-rounded,"SF Pro Rounded",system-ui,-apple-system,sans-serif;background:#cdeefd;color:#24506b}
+.screen{height:100vh;display:flex;flex-direction:column}
+@supports (height:100dvh){.screen{height:100dvh}}
+header{display:flex;align-items:center;gap:10px;padding:8px 14px;font-weight:800}
+header .name{font-size:20px}
+header .sp{flex:1}
+.pill{font-size:18px;background:#fff;border-radius:999px;padding:4px 14px;box-shadow:0 2px 0 #9ccde6}
+.rbtn{font-size:22px;background:#fff;border:0;border-radius:999px;width:44px;height:44px;box-shadow:0 2px 0 #9ccde6;color:#24506b}
+main{flex:1;display:flex;gap:12px;padding:0 12px 12px;min-height:0}
+aside{flex:0 0 clamp(200px,28vw,330px);display:flex;flex-direction:column;gap:12px;min-height:0}
+.panel{background:#fff;border-radius:22px;box-shadow:0 4px 0 #9ccde6;position:relative;overflow:hidden}
+#modelBox{flex:0 0 32%}
+#modelBox::before{content:"👀";position:absolute;top:6px;left:10px;font-size:20px;z-index:2}
+#tray{flex:1;display:grid;grid-template-columns:1fr;grid-auto-rows:1fr;gap:10px;padding:10px;min-height:0}
+.tile{border:0;border-radius:16px;background:#f2f8fc;display:flex;align-items:center;justify-content:center;position:relative;min-height:0;transition:transform .1s}
+.tile img{max-width:90%;max-height:90%}
+.tile.next{background:#fff8d6;box-shadow:0 0 0 4px #ffd84d,0 0 20px 4px rgba(255,216,77,.7)}
+.tile.next img{animation:hop 1.5s ease-in-out infinite}
+.tile.nope{animation:nope .45s}
+.tile.used{visibility:hidden}
+.cnt{position:absolute;right:8px;bottom:6px;font-size:15px;font-weight:900;background:#fff;border-radius:999px;padding:1px 8px}
+#tray.wait .tile{opacity:.35}
+#tray.wait::after{content:"⏳";position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:60px}
+#stage{flex:1;position:relative;border-radius:22px;overflow:hidden;background:linear-gradient(#bfe9ff,#e9f8ff 60%,#d8f3c8);box-shadow:0 4px 0 #9ccde6;touch-action:none}
+canvas{display:block;width:100%;height:100%}
+.rot{position:absolute;bottom:12px;display:flex;gap:10px;right:12px}
+.word{position:absolute;left:50%;top:8%;transform:translateX(-50%);font-weight:900;font-size:clamp(30px,6vw,60px);color:#fff;white-space:nowrap;pointer-events:none;
+  text-shadow:2px 0 0 #111,-2px 0 0 #111,0 2px 0 #111,0 -2px 0 #111,1.5px 1.5px 0 #111,-1.5px -1.5px 0 #111,1.5px -1.5px 0 #111,-1.5px 1.5px 0 #111;animation:word 1.6s ease-out forwards}
+#win{position:fixed;inset:0;background:rgba(20,60,90,.35);display:none;align-items:center;justify-content:center;z-index:9}
+#win.show{display:flex}
+#win .box{background:#fff;border-radius:30px;padding:24px 34px;text-align:center;box-shadow:0 8px 0 #9ccde6}
+#win .star{font-size:80px}
+#again{margin-top:12px;font-size:40px;width:90px;height:90px;border:0;border-radius:50%;background:#ffd84d;box-shadow:0 6px 0 #d4a900}
+@keyframes hop{0%,55%,100%{transform:translateY(0)}20%{transform:translateY(-12%)}38%{transform:translateY(0)}}
+@keyframes nope{0%,100%{transform:translateX(0)}25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
+@keyframes word{0%{transform:translate(-50%,20px) scale(.6);opacity:0}15%{transform:translate(-50%,0) scale(1.1);opacity:1}80%{opacity:1}100%{transform:translate(-50%,-25px);opacity:0}}
+@media (orientation:portrait){main{flex-direction:column-reverse}aside{flex:0 0 34%;flex-direction:row}#modelBox{flex:0 0 40%}}
+</style>
+</head>
+<body>
+<div class="screen">
+  <header><span class="name">🌳 Árbol 3D <span style="opacity:.6;font-size:15px">(prueba)</span></span><span class="sp"></span><span class="pill" id="left">🧱 0</span></header>
+  <main>
+    <aside><div class="panel" id="modelBox"><canvas id="mini"></canvas></div><div class="panel" id="tray"></div></aside>
+    <section id="stage"><canvas id="cv"></canvas>
+      <div class="rot"><button class="rbtn" id="rl">⟲</button><button class="rbtn" id="rr">⟳</button></div></section>
+  </main>
+</div>
+<div id="win"><div class="box"><div class="star">⭐</div><h2>¡Lo lograste!</h2><button id="again">↻</button></div></div>
+<script>
+// =====================================================================
+//  Motor isométrico propio (sin librerías): cada ficha se divide en celdas de 1 botón × 1 placa
+//  y se dibujan de atrás hacia adelante, así nunca se cruzan mal.
+//  Medidas reales: botón 8 mm, placa 3,2 mm (0,4 botón), ladrillo = 3 placas, botón Ø 4,8 mm × 1,7 mm.
+// =====================================================================
+const COL={r:['#e3342a','#a8211a','#c42a21'],g:['#2fb24c','#1c7a31','#24963e'],n:['#8a5a33','#5c3a1f','#734a29'],
+  G:['#6cc04a','#3f8a2a','#56a63a'],k:['#b6bcc1','#7d8489','#9aa1a6']};
+const PLH=.4,STUD_R=.3,STUD_H=1.7/3.2;     // alto de placa en botones; botón: radio y alto (en placas)
+// ficha: k=forma, c=color, x/z en botones, y en placas, w/d ancho/fondo, h alto (placas), round = cilindro
+const P=(k,c,x,y,z,w,d,h,round)=>({k,c,x,y,z,w,d,h,round:!!round});
+const BASE=P('base','G',0,0,0,8,8,1);       // base verde fija 8x8
+// Árbol: tronco 2x2 ×2, copa de 2x4 cruzados (técnica real de Lego), punta 2x2 y manzanas redondas
+const STEPS=[
+  P('b22','n',3,1,3,2,2,3),        // tronco
+  P('b22','n',3,4,3,2,2,3),
+  P('b24','g',2,7,2,4,2,3),        // copa: capa 1 (2x4 acostados)
+  P('b24','g',2,7,4,4,2,3),
+  P('b24','g',2,10,2,2,4,3),       // capa 2 cruzada (2x4 de pie) — así se traban
+  P('b24','g',4,10,2,2,4,3),
+  P('b22','g',3,13,3,2,2,3),       // punta
+  P('r11','r',2,13,2,1,1,3,1),     // manzanas
+  P('r11','r',5,13,5,1,1,3,1),
+  P('r11','r',2,13,5,1,1,3,1)
+];
+const KEY=s=>s.k+s.c;
+const NAME={b22:'brick',b24:'brick',r11:'round brick'},CNAME={r:'red',g:'green',n:'brown'};
+
+// ---------------- dibujo ----------------
+const R3=Math.sqrt(3)/2;
+function proj(o,vx,y,vz){return[o.ox+(vx-vz)*o.S*R3,o.oy+(vx+vz)*o.S*.5-y*o.S*PLH]}
+function rotXZ(x,z,rot,N){switch(rot&3){case 0:return[x,z];case 1:return[N-1-z,x];case 2:return[N-1-x,N-1-z];default:return[z,N-1-x]}}
+// convierte fichas en celdas en coordenadas de vista
+function cellsOf(list,rot,N){
+  const cells=[],grid=new Map();
+  list.forEach((p,pi)=>{for(let x=p.x;x<p.x+p.w;x++)for(let z=p.z;z<p.z+p.d;z++)for(let y=Math.floor(p.y);y<Math.floor(p.y)+p.h;y++){
+    const [vx,vz]=rotXZ(x,z,rot,N);const c={vx,vz,y,pi,dy:p.y-Math.floor(p.y)};cells.push(c);if(!p.free)grid.set(vx+','+y+','+vz,pi)}});
+  return{cells,grid};
+}
+function poly(g,pts,fill,stroke){g.beginPath();g.moveTo(pts[0][0],pts[0][1]);for(let i=1;i<pts.length;i++)g.lineTo(pts[i][0],pts[i][1]);g.closePath();
+  if(fill){g.fillStyle=fill;g.fill()}if(stroke){g.strokeStyle=stroke;g.stroke()}}
+function ellipse(g,cx,cy,rx,ry,fill){g.beginPath();g.ellipse(cx,cy,rx,ry,0,0,Math.PI*2);g.fillStyle=fill;g.fill()}
+function cylinder(g,o,cx,cz,y0,hPl,r,cols){
+  const [x0,yb]=proj(o,cx,y0,cz),[,yt]=proj(o,cx,y0+hPl,cz),rx=r*o.S*Math.SQRT2*R3*1.0,ry=r*o.S*Math.SQRT2*.5;
+  ellipse(g,x0,yb,rx,ry,cols[1]);
+  const grd=g.createLinearGradient(x0-rx,0,x0+rx,0);grd.addColorStop(0,cols[1]);grd.addColorStop(.35,cols[0]);grd.addColorStop(.5,'#ffffff99');grd.addColorStop(.65,cols[0]);grd.addColorStop(1,cols[1]);
+  g.fillStyle=grd;g.fillRect(x0-rx,yt,rx*2,yb-yt);
+  ellipse(g,x0,yt,rx,ry,cols[0]);
+}
+// dibuja una lista de fichas; opts: alpha por ficha, dy (animación de caída)
+function drawScene(g,o,list,rot,N,style){
+  const {cells,grid}=cellsOf(list,rot,N);
+  const own=(c,dx,dy,dz)=>{const v=grid.get((c.vx+dx)+','+(c.y+dy)+','+(c.vz+dz));return v};
+  cells.sort((a,b)=>(a.vx+a.vz)-(b.vx+b.vz)||(a.y+a.dy)-(b.y+b.dy)||a.vx-b.vx);
+  const drawnRound=new Set();
+  for(const c of cells){
+    const p=list[c.pi],cols=COL[p.c],st=style(p,c.pi),y=c.y+c.dy+(st.off||0);
+    g.globalAlpha=st.alpha;
+    const free=p.free; // ficha suelta (fantasma o cayendo): solo choca consigo misma
+    const nb=(dx,dy,dz)=>{if(free){const [wx,wz]=[c.vx+dx,c.vz+dz];return list[c.pi]&&cellIn(p,wx,c.y+dy,wz,rot,N)?c.pi:undefined}return own(c,dx,dy,dz)};
+    if(p.round){if(!drawnRound.has(c.pi)){drawnRound.add(c.pi);const [vx,vz]=rotXZ(p.x,p.z,rot,N);
+        cylinder(g,o,vx+.5,vz+.5,p.y+(st.off||0),p.h,.46,cols);cylinder(g,o,vx+.5,vz+.5,p.y+p.h+(st.off||0),STUD_H,STUD_R,cols);
+        if(st.glow)glowPiece(g,o,p,rot,N,st)}continue}
+    const x=c.vx,z=c.vz,line=st.edge||'rgba(0,0,0,.18)';
+    const topEmpty=nb(0,1,0)===undefined, rightEmpty=nb(1,0,0)===undefined, leftEmpty=nb(0,0,1)===undefined;
+    g.lineWidth=1.2;   // el trazo del mismo color tapa las rayitas entre celdas
+    if(rightEmpty)poly(g,[proj(o,x+1,y,z),proj(o,x+1,y,z+1),proj(o,x+1,y+1,z+1),proj(o,x+1,y+1,z)],cols[1],cols[1]);
+    if(leftEmpty)poly(g,[proj(o,x,y,z+1),proj(o,x+1,y,z+1),proj(o,x+1,y+1,z+1),proj(o,x,y+1,z+1)],cols[2],cols[2]);
+    if(topEmpty)poly(g,[proj(o,x,y+1,z),proj(o,x+1,y+1,z),proj(o,x+1,y+1,z+1),proj(o,x,y+1,z+1)],cols[0],cols[0]);
+    // bordes de la ficha (donde termina)
+    g.lineWidth=Math.max(1,o.S*.03);g.strokeStyle=line;
+    const isTop=c.y===Math.floor(p.y)+p.h-1,isBot=c.y===Math.floor(p.y);
+    const L=(a,b)=>{g.beginPath();g.moveTo(a[0],a[1]);g.lineTo(b[0],b[1]);g.stroke()};
+    if(rightEmpty){if(nb(0,0,1)!==c.pi||leftEmpty)L(proj(o,x+1,y,z+1),proj(o,x+1,y+1,z+1));if(isBot)L(proj(o,x+1,y,z),proj(o,x+1,y,z+1));if(isTop&&topEmpty)L(proj(o,x+1,y+1,z),proj(o,x+1,y+1,z+1))}
+    if(leftEmpty){if(isBot)L(proj(o,x,y,z+1),proj(o,x+1,y,z+1));if(isTop&&topEmpty)L(proj(o,x,y+1,z+1),proj(o,x+1,y+1,z+1));if(nb(-1,0,0)!==c.pi)L(proj(o,x,y,z+1),proj(o,x,y+1,z+1))}
+    if(topEmpty&&isTop){if(nb(0,0,-1)!==c.pi)L(proj(o,x,y+1,z),proj(o,x+1,y+1,z));if(nb(-1,0,0)!==c.pi)L(proj(o,x,y+1,z),proj(o,x,y+1,z+1))}
+    // botón encima
+    if(topEmpty&&isTop)cylinder(g,o,x+.5,z+.5,y+1,STUD_H,STUD_R,cols);
+    if(st.glow&&isTop&&topEmpty&&c===cells.find(q=>q.pi===c.pi&&q.y===c.y))glowPiece(g,o,p,rot,N,st);
+  }
+  g.globalAlpha=1;
+}
+function cellIn(p,vx,y,vz,rot,N){for(let x=p.x;x<p.x+p.w;x++)for(let z=p.z;z<p.z+p.d;z++){const [a,b]=rotXZ(x,z,rot,N);if(a===vx&&b===vz&&y>=Math.floor(p.y)&&y<Math.floor(p.y)+p.h)return true}return false}
+// contorno naranja brillante de la ficha que sigue
+function glowPiece(g,o,p,rot,N,st){
+  const cs=[];for(const [x,z] of [[p.x,p.z],[p.x+p.w,p.z],[p.x+p.w,p.z+p.d],[p.x,p.z+p.d]]){
+    const xx=x===p.x?x:x-1,zz=z===p.z?z:z-1;const [a,b]=rotXZ(xx,zz,rot,N);cs.push([a+(x===p.x?0:1)*(1)-(x===p.x?0:0),b])}
+  // caja envolvente en coordenadas de vista
+  const vs=[];for(let x=p.x;x<p.x+p.w;x++)for(let z=p.z;z<p.z+p.d;z++){const [a,b]=rotXZ(x,z,rot,N);vs.push([a,b])}
+  const x0=Math.min(...vs.map(v=>v[0])),x1=Math.max(...vs.map(v=>v[0]))+1,z0=Math.min(...vs.map(v=>v[1])),z1=Math.max(...vs.map(v=>v[1]))+1;
+  const y0=p.y+(st.off||0),y1=y0+p.h;
+  g.save();g.globalAlpha=1;g.lineWidth=Math.max(2,o.S*.08);g.strokeStyle=st.glow;g.shadowColor='#ffb000';g.shadowBlur=o.S*.4;g.lineJoin='round';
+  poly(g,[proj(o,x0,y1,z0),proj(o,x1,y1,z0),proj(o,x1,y1,z1),proj(o,x1,y0,z1),proj(o,x0,y0,z1),proj(o,x0,y1,z1)],null,st.glow);
+  g.beginPath();const a=proj(o,x1,y1,z1);g.moveTo(...proj(o,x0,y1,z1));g.lineTo(...a);g.lineTo(...proj(o,x1,y1,z0));g.moveTo(...a);g.lineTo(...proj(o,x1,y0,z1));g.stroke();
+  g.restore();
+}
+// encuadre: escala y centro para que todo quepa
+function fit(cv,list,rot,N,pad){
+  const o={S:1,ox:0,oy:0};let mnx=1e9,mxx=-1e9,mny=1e9,mxy=-1e9;
+  list.forEach(p=>{for(const x of [p.x,p.x+p.w])for(const z of [p.z,p.z+p.d])for(const y of [p.y,p.y+p.h+STUD_H]){
+    const [a,b]=rotXZ(Math.min(x,N-1),Math.min(z,N-1),rot,N);const [px,py]=proj(o,a+(x>=N?1:0),y,b+(z>=N?1:0));
+    mnx=Math.min(mnx,px);mxx=Math.max(mxx,px);mny=Math.min(mny,py);mxy=Math.max(mxy,py)}});
+  // margen extra por el cálculo aproximado
+  mnx-=1;mxx+=1;mny-=1;mxy+=.6;
+  const S=Math.min(cv.width*(1-pad)/(mxx-mnx),cv.height*(1-pad)/(mxy-mny));
+  return{S,ox:cv.width/2-(mnx+mxx)/2*S,oy:cv.height/2-(mny+mxy)/2*S};
+}
+function sizeCanvas(cv){const r=cv.getBoundingClientRect(),d=Math.min(2,window.devicePixelRatio||1);cv.width=Math.max(10,r.width*d);cv.height=Math.max(10,r.height*d);return cv.getContext('2d')}
+
+// ---------------- sonido y voz ----------------
+let AC;function ac(){try{AC=AC||new(window.AudioContext||window.webkitAudioContext)();if(AC.state==='suspended')AC.resume()}catch(e){}return AC}
+function tone(f,t0,d,type='triangle',v=.2){const a=ac();if(!a)return;const t=a.currentTime+t0,o=a.createOscillator(),g=a.createGain();o.type=type;o.frequency.setValueAtTime(f,t);g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(v,t+.01);g.gain.exponentialRampToValueAtTime(.001,t+d);o.connect(g).connect(a.destination);o.start(t);o.stop(t+d+.05)}
+function click(){const a=ac();if(!a)return;try{const b=a.createBuffer(1,a.sampleRate*.05,a.sampleRate),d=b.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/d.length,6);
+  const s=a.createBufferSource(),f=a.createBiquadFilter(),g=a.createGain();s.buffer=b;f.type='bandpass';f.frequency.value=2600;g.gain.value=.35;s.connect(f).connect(g).connect(a.destination);s.start()}catch(e){}}
+function say(t){try{const u=new SpeechSynthesisUtterance(t);u.lang='en-US';u.rate=.85;u.pitch=1.15;speechSynthesis.cancel();speechSynthesis.speak(u)}catch(e){}}
+function word(t){document.querySelectorAll('.word').forEach(w=>w.remove());const d=document.createElement('div');d.className='word';d.textContent=t;document.getElementById('stage').appendChild(d);setTimeout(()=>d.remove(),1700)}
+
+// ---------------- juego ----------------
+const $=s=>document.querySelector(s);
+const cv=$('#cv'),mini=$('#mini'),tray=$('#tray');
+let placed=0,rot=0,fall=null,busy=false,wrong=0,spin=0;
+const N=8;
+const helped=()=>placed<2;
+// iconos de la bandeja: cada tipo de ficha dibujado solo
+const ICON={};
+function makeIcons(){
+  STEPS.forEach(s=>{const k=KEY(s);if(ICON[k])return;const c=document.createElement('canvas');c.width=220;c.height=170;const g=c.getContext('2d');
+    const p=Object.assign({},s,{x:0,z:0,y:0});if(p.d>p.w){p.w=s.d;p.d=s.w}   // 2x4 siempre mostrado igual
+    const o=fit(c,[p],0,4,.12);drawScene(g,o,[p],0,4,()=>({alpha:1}));ICON[k]=c.toDataURL()})}
+function remaining(k){let n=0;for(let i=placed;i<STEPS.length;i++)if(KEY(STEPS[i])===k)n++;return n}
+function renderTray(){
+  tray.innerHTML='';const ks=[...new Set(STEPS.map(KEY))];
+  ks.forEach(k=>{const n=remaining(k),t=document.createElement('button');t.className='tile'+(n?'':' used');t.dataset.k=k;
+    if(n&&placed<STEPS.length&&k===KEY(STEPS[placed])&&helped())t.classList.add('next');
+    t.innerHTML=`<img src="${ICON[k]}">${n>1?`<span class="cnt">×${n}</span>`:''}`;tray.appendChild(t)});
+  $('#left').textContent='🧱 '+(STEPS.length-placed);
+}
+function frame(t){
+  const g=sizeCanvas(cv);
+  const all=[BASE,...STEPS];
+  let o=fit(cv,all,rot,N,.18);
+  // giro de celebración: rota la vista paso a paso
+  const view=(rot+Math.floor(spin))&3;
+  if(spin){o=fit(cv,all,view,N,.18)}
+  const list=[BASE];
+  const style=[];
+  for(let i=0;i<STEPS.length;i++){
+    if(i<placed||(fall&&fall.i===i)){const p=STEPS[i];list.push(fall&&fall.i===i?Object.assign({},p,{free:true}):p);
+      style.push(fall&&fall.i===i?{alpha:1,off:fall.off}:{alpha:1})}
+  }
+  // fantasma de la ficha que sigue
+  if(!fall&&placed<STEPS.length){const p=Object.assign({},STEPS[placed],{free:true});list.push(p);
+    const pulse=.35+.25*Math.sin(t/220);style.push({alpha:pulse,glow:'#ff7a00',edge:'rgba(255,122,0,.6)'})}
+  drawScene(g,o,list,view,N,(p,i)=>i===0?{alpha:1}:style[i-1]);
+  requestAnimationFrame(frame);
+}
+function drawMini(){const g=sizeCanvas(mini);const all=[BASE,...STEPS];const o=fit(mini,all,rot,N,.14);drawScene(g,o,all,rot,N,()=>({alpha:1}))}
+tray.addEventListener('pointerdown',ev=>{
+  ac();const t=ev.target.closest('.tile');if(!t||busy||placed>=STEPS.length)return;
+  if(t.dataset.k!==KEY(STEPS[placed])){t.classList.remove('nope');void t.offsetWidth;t.classList.add('nope');tone(260,0,.12,'sine',.15);say('Oops! Try again.');
+    wrong=Math.min(wrong+1,3);busy=true;tray.classList.add('wait');setTimeout(()=>{busy=false;tray.classList.remove('wait')},[0,1500,3000,5000][wrong]);return}
+  wrong=0;dropPiece();
+});
+function dropPiece(){
+  busy=true;const i=placed,start=performance.now(),H=14;
+  fall={i,off:H};tone(500,0,.2,'sine',.06);
+  const step=now=>{const k=Math.min(1,(now-start)/520);
+    // cae acelerando y rebota un poquito al llegar
+    fall.off=k<.8?H*(1-Math.pow(k/.8,2)):Math.sin((k-.8)/.2*Math.PI)*1.1;
+    if(k<1)requestAnimationFrame(step);else{fall=null;placed++;click();tone([523,587,659,784,880,1047,1175,1319,1568,1760][i],.02,.22);
+      const s=STEPS[i];const nm=CNAME[s.c]+' '+NAME[s.k];word(nm.charAt(0).toUpperCase()+nm.slice(1));say(nm+'!');
+      busy=false;renderTray();if(placed===STEPS.length)win()}};
+  requestAnimationFrame(step);
+}
+function win(){busy=true;say('Good job! You did it!');[523,659,784,1047].forEach((f,j)=>tone(f,j*.13,.3));
+  const t0=performance.now();const sp=now=>{spin=Math.min(4,(now-t0)/350);if(spin<4)requestAnimationFrame(sp);else{spin=0;$('#win').classList.add('show')}};requestAnimationFrame(sp)}
+$('#again').addEventListener('click',()=>{placed=0;busy=false;$('#win').classList.remove('show');renderTray()});
+$('#rl').addEventListener('click',()=>{rot=(rot+3)&3;drawMini()});
+$('#rr').addEventListener('click',()=>{rot=(rot+1)&3;drawMini()});
+// girar deslizando el dedo sobre el escenario
+let sx=null;$('#stage').addEventListener('pointerdown',e=>{if(e.target.closest('.rbtn'))return;sx=e.clientX});
+window.addEventListener('pointerup',e=>{if(sx===null)return;const d=e.clientX-sx;sx=null;if(Math.abs(d)>40){rot=(rot+(d>0?1:3))&3;drawMini()}});
+window.addEventListener('resize',()=>{drawMini();renderTray()});
+makeIcons();renderTray();drawMini();requestAnimationFrame(frame);
+</script>
+</body>
+</html>
