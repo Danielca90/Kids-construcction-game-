@@ -91,9 +91,14 @@ const P=(k,c,x,y,z,w,d,h,round)=>({k,c,x,y,z,w,d,h,round:!!round});
 const B=(c,x,y,z,w,d)=>P('b',c,x,y,z,w,d,3);
 const PL_=(c,x,y,z,w,d)=>P('p',c,x,y,z,w,d,1);
 const RD=(c,x,y,z)=>P('r',c,x,y,z,1,1,3,1);
+// teja 45° (botones solo en la fila alta) y teja curva (sin botones); dir = hacia dónde baja: 'x+','x-','z+','z-'
+const SL=(c,x,y,z,w,d,dir)=>Object.assign(P('s',c,x,y,z,w,d,3),{shape:'slope',dir});
+const CV=(c,x,y,z,w,d,dir)=>Object.assign(P('c',c,x,y,z,w,d,3),{shape:'curve',dir});
+// llanta con rin: 2 botones de diámetro, 1 de grosor; ax = eje ('z': rueda de lado mirando a x)
+const WH=(x,y,z,ax='z')=>Object.assign(P('w','x',x,y,z,ax==='z'?2:1,ax==='z'?1:2,5),{shape:'wheel',ax});
 // tipo de ficha para la bandeja: forma + medidas (2x4 de pie o acostado es la misma ficha) + color
-const KEY=s=>(s.round?'rd':s.k+Math.min(s.w,s.d)+'x'+Math.max(s.w,s.d))+s.c;
-const NAME=s=>s.round?'round brick':s.k==='p'?'plate':'brick';
+const KEY=s=>(s.round?'rd':s.k+Math.min(s.w,s.d)+'x'+Math.max(s.w,s.d))+s.c;  // la teja girada es la misma ficha
+const NAME=s=>s.shape==='wheel'?'wheel':s.shape==='slope'?'slope':s.shape==='curve'?'curved slope':s.round?'round brick':s.k==='p'?'plate':'brick';
 const CNAME={r:'red',g:'green',n:'brown',k:'gray',y:'yellow',a:'blue',w:'white',x:'black',b:'light blue',o:'orange',G:'green',m:'pink',C:'tan',L:'lime',S:'light green',Y:'light yellow',D:'dark gray',T:'pink',N:'orange',R:'dark red'};
 
 // ================== MODELOS 3D ==================
@@ -129,23 +134,21 @@ const MODELS3D=[
    PL_('r',2,16,2,2,2),RD('w',2,17,2)]},                          // punta
  // armado por el hijo de Santiago con Lego real (fotos del 15-nov-2026): ruedas con soporte, techo azul, cabina verde limón y 4 faroles
  {id:'t3_carro_arcoiris',name:'Carro arcoíris',emo:'🚙',N:8,base:'k',steps:[
-   B('D',0,1,1,2,2),B('D',4,1,1,2,2),                                        // soportes de las ruedas
-   B('x',0,1,0,2,1),B('x',0,1,3,2,1),B('x',4,1,0,2,1),B('x',4,1,3,2,1),     // ruedas (abajo)
-   B('y',6,1,1,1,2),                                                        // trompa amarilla
-   B('x',0,4,0,2,1),B('x',0,4,3,2,1),B('x',4,4,0,2,1),B('x',4,4,3,2,1),     // ruedas (arriba)
-   B('r',0,4,1,6,2),B('r',6,4,1,1,2),                                        // chasis rojo y trompa
-   B('S',0,7,0,2,1),B('Y',2,7,0,2,1),B('a',4,7,0,2,1),                      // costado izquierdo, fila de abajo
-   B('T',0,7,3,2,1),B('o',2,7,3,2,1),B('a',4,7,3,2,1),                      // costado derecho, fila de abajo
-   B('r',0,7,1,6,2),B('r',6,7,1,1,2),                                        // relleno y frente rojo
-   B('n',0,10,0,2,1),B('D',2,10,0,2,1),B('L',4,10,0,2,1),                   // costado izquierdo, fila de arriba
-   B('n',0,10,3,2,1),B('D',2,10,3,2,1),B('L',4,10,3,2,1),                   // costado derecho, fila de arriba
-   B('D',0,10,1,6,2),B('y',6,10,0,1,4),                                      // relleno y frente amarillo
-   RD('w',7,10,0),RD('w',7,10,1),RD('w',7,10,2),RD('w',7,10,3),             // 4 faroles blancos
-   B('a',0,13,0,4,2),B('a',0,13,2,4,2),                                      // techo azul
-   B('L',4,13,0,1,4),B('L',5,13,0,2,1),B('T',5,13,1,2,2),B('m',5,13,3,2,1),  // cabina
-   PL_('N',5,16,1,1,2)]},                                                   // placa naranja arriba
+   WH(0,1,0),WH(0,1,3),WH(4,1,0),WH(4,1,3),                                   // 4 llantas con rin
+   B('D',0,2,1,2,2),B('D',4,2,1,2,2),B('y',6,2,1,1,2),                       // soportes de las llantas y trompa
+   B('r',0,5,1,6,2),B('r',6,5,1,1,2),                                        // chasis rojo
+   B('S',0,8,0,2,1),B('Y',2,8,0,2,1),B('a',4,8,0,2,1),                      // costado izquierdo, fila de abajo
+   B('T',0,8,3,2,1),B('o',2,8,3,2,1),B('a',4,8,3,2,1),                      // costado derecho, fila de abajo
+   B('r',0,8,1,6,2),B('r',6,8,1,1,2),                                        // relleno y frente rojo
+   B('n',0,11,0,2,1),B('D',2,11,0,2,1),B('L',4,11,0,2,1),                   // costado izquierdo, fila de arriba
+   B('n',0,11,3,2,1),B('D',2,11,3,2,1),B('L',4,11,3,2,1),                   // costado derecho, fila de arriba
+   B('D',0,11,1,6,2),B('y',6,11,0,1,4),                                      // relleno y frente amarillo
+   RD('w',7,11,0),RD('w',7,11,1),RD('w',7,11,2),RD('w',7,11,3),             // 4 faroles blancos
+   CV('a',0,14,0,4,2,'z-'),CV('a',0,14,2,4,2,'z+'),                          // techo azul curvo
+   B('L',4,14,0,1,4),SL('L',5,14,0,2,1,'x+'),B('T',5,14,1,2,2),SL('m',5,14,3,2,1,'x+'),  // cabina con tejas
+   PL_('N',5,17,1,1,2)]},                                                   // placa naranja arriba
  {id:'t3_carro',name:'Carro',emo:'🚗',N:8,base:'k',steps:[
-   B('x',1,1,2,2,1),B('x',5,1,2,2,1),B('x',1,1,5,2,1),B('x',5,1,5,2,1),   // ruedas
+   WH(1,1,1),WH(5,1,1),WH(1,1,6),WH(5,1,6),B('k',1,1,3,2,2),B('k',5,1,3,2,2),   // llantas y soportes
    B('r',1,4,2,6,2),B('r',1,4,4,6,2),                             // chasis
    B('r',1,7,2,2,4),B('b',3,7,2,2,4),RD('y',6,7,2),RD('y',6,7,5),   // cabina, vidrios y faroles
    PL_('r',1,10,2,4,4)]},                                          // techo
@@ -176,7 +179,7 @@ function rotXZ(x,z,rot,N){switch(rot&3){case 0:return[x,z];case 1:return[N-1-z,x
 function cellsOf(list,rot,N){
   const cells=[],grid=new Map();
   list.forEach((p,pi)=>{for(let x=p.x;x<p.x+p.w;x++)for(let z=p.z;z<p.z+p.d;z++)for(let y=Math.floor(p.y);y<Math.floor(p.y)+p.h;y++){
-    const [vx,vz]=rotXZ(x,z,rot,N);const c={vx,vz,y,pi,dy:p.y-Math.floor(p.y)};cells.push(c);if(!p.free)grid.set(vx+','+y+','+vz,pi)}});
+    const [vx,vz]=rotXZ(x,z,rot,N);const c={vx,vz,y,pi,dy:p.y-Math.floor(p.y)};cells.push(c);if(!p.free&&!p.shape)grid.set(vx+','+y+','+vz,pi)}});   // las piezas con forma no tapan caras vecinas
   return{cells,grid};
 }
 function poly(g,pts,fill,stroke){g.beginPath();g.moveTo(pts[0][0],pts[0][1]);for(let i=1;i<pts.length;i++)g.lineTo(pts[i][0],pts[i][1]);g.closePath();
@@ -189,15 +192,67 @@ function cylinder(g,o,cx,cz,y0,hPl,r,cols){
   g.fillStyle=grd;g.fillRect(x0-rx,yt,rx*2,yb-yt);
   ellipse(g,x0,yt,rx,ry,cols[0]);
 }
+function rotP(x,z,rot,N){switch(rot&3){case 0:return[x,z];case 1:return[N-z,x];case 2:return[N-x,N-z];default:return[z,N-x]}}
+function shapeFaces(p,y0){
+  const F=[];
+  if(p.shape==='wheel'){
+    const ax=p.ax||'z',r=(ax==='z'?p.w:p.d)/2,n=24,cy=y0+p.h/2;
+    const a0=(ax==='z'?p.z:p.x)+.08,a1=(ax==='z'?p.z+p.d:p.x+p.w)-.08,cx=p.x+p.w/2,cz=p.z+p.d/2;
+    const pt=(t,a,k=1)=>ax==='z'?[cx+r*k*Math.cos(t),cy+r*k*Math.sin(t)/PLH,a]:[a,cy+r*k*Math.sin(t)/PLH,cz+r*k*Math.cos(t)];
+    const ring=(a,k)=>{const R=[];for(let i=0;i<n;i++)R.push(pt(i/n*Math.PI*2,a,k));return R};
+    F.push({pts:ring(a0,1),tag:'cap',a:a0,out:-1},{pts:ring(a1,1),tag:'cap',a:a1,out:1});
+    for(let i=0;i<n;i++){const t0=i/n*Math.PI*2,t1=(i+1)/n*Math.PI*2;F.push({pts:[pt(t0,a0),pt(t1,a0),pt(t1,a1),pt(t0,a1)],tag:'tire'})}
+    F.ring=ring;F.ax=ax;return F}
+  const along=p.dir[0],sg=p.dir[1]==='+'?1:-1,Lu=along==='x'?p.w:p.d,Wv=along==='x'?p.d:p.w,h=p.h;
+  let prof;
+  if(p.shape==='slope')prof=[[0,0],[Lu,0],[Lu,1],[1,h],[0,h]];
+  else{prof=[[0,0],[Lu,0]];const lip=.5;for(let i=0;i<=10;i++){const t=i/10*Math.PI/2;prof.push([Lu*Math.cos(t),lip+(h-lip)*Math.sin(t)])}prof.push([0,h])}
+  const map=(u,v,y)=>{const uu=sg>0?u:Lu-u;return along==='x'?[p.x+uu,y0+y,p.z+v]:[p.x+v,y0+y,p.z+uu]};
+  F.push({pts:prof.map(([u,y])=>map(u,0,y))},{pts:prof.map(([u,y])=>map(u,Wv,y))});
+  for(let i=0;i<prof.length;i++){const [u0,y_0]=prof[i],[u1,y_1]=prof[(i+1)%prof.length];
+    if(Math.abs(u0-u1)<1e-9&&Math.abs(y_0-y_1)<1e-9)continue;F.push({pts:[map(u0,0,y_0),map(u1,0,y_1),map(u1,Wv,y_1),map(u0,Wv,y_0)]})}
+  F.studs=p.shape==='slope'?Array.from({length:Wv},(_,v)=>map(.5,v+.5,h)):[];
+  return F;
+}
+function drawShape(g,o,p,rot,N,st){
+  const cols=COL[p.c],y0=p.y+(st.off||0),F=shapeFaces(p,y0);
+  const V=a=>{const [vx,vz]=rotP(a[0],a[2],rot,N);return[vx,a[1]*PLH,vz]};
+  const all=F.flatMap(f=>f.pts.map(V)),cen=[0,1,2].map(i=>all.reduce((s,q)=>s+q[i],0)/all.length);
+  const view=[1,1.25,1];
+  for(const f of F){
+    const P3=f.pts.map(V);let nx=0,ny=0,nz=0;
+    for(let i=0;i<P3.length;i++){const a=P3[i],b=P3[(i+1)%P3.length];nx+=(a[1]-b[1])*(a[2]+b[2]);ny+=(a[2]-b[2])*(a[0]+b[0]);nz+=(a[0]-b[0])*(a[1]+b[1])}
+    const fc=[0,1,2].map(i=>P3.reduce((s,q)=>s+q[i],0)/P3.length);
+    if(nx*(fc[0]-cen[0])+ny*(fc[1]-cen[1])+nz*(fc[2]-cen[2])<0){nx=-nx;ny=-ny;nz=-nz}
+    if(nx*view[0]+ny*view[1]+nz*view[2]<=1e-9)continue;
+    const L=Math.hypot(nx,ny,nz)||1,uy=ny/L;
+    let fill;
+    if(p.shape==='wheel')fill=f.tag==='cap'?'#1f2123':(Math.abs(nx)>Math.abs(nz)?'#141516':'#26292b');
+    else fill=uy>.9?cols[0]:uy>.25?cols[0]:(Math.abs(nx)>Math.abs(nz)?cols[1]:cols[2]);
+    const scr=f.pts.map(a=>{const [vx,vz]=rotP(a[0],a[2],rot,N);return proj(o,vx,a[1],vz)});
+    g.lineWidth=1.2;poly(g,scr,fill,fill);
+    if(p.shape!=='wheel'&&uy<=.9){const k=(1-Math.max(0,uy))*(p.shape==='curve'?.32:.14);   // lo inclinado/curvo más oscuro según cuánto baja
+      if(uy>.25||p.shape==='curve'){g.save();g.globalAlpha*=k;g.lineWidth=1.2;poly(g,scr,'#000','#000');g.restore()}}
+    if(p.shape==='slope'){g.lineWidth=Math.max(1,o.S*.03);g.strokeStyle=st.edge||'rgba(0,0,0,.18)';poly(g,scr,null,g.strokeStyle)}
+    if(f.tag==='cap'){   // rin gris con centro
+      const off=f.a+f.out*.02,toS=R=>R.map(a=>{const [vx,vz]=rotP(a[0],a[2],rot,N);return proj(o,vx,a[1],vz)});
+      poly(g,toS(F.ring(off,.64)),'#c9ccce','#9aa1a6');poly(g,toS(F.ring(off,.42)),'#aeb3b7');poly(g,toS(F.ring(off,.18)),'#6f7478')}
+  }
+  for(const s0 of F.studs||[]){const [vx,vz]=rotP(s0[0],s0[2],rot,N);cylinder(g,o,vx,vz,s0[1],STUD_H,STUD_R,cols)}
+  if(st.glow)glowPiece(g,o,p,rot,N,st);
+}
 // dibuja una lista de fichas; opts: alpha por ficha, dy (animación de caída)
 function drawScene(g,o,list,rot,N,style){
   const {cells,grid}=cellsOf(list,rot,N);
   const own=(c,dx,dy,dz)=>{const v=grid.get((c.vx+dx)+','+(c.y+dy)+','+(c.vz+dz));return v};
   cells.sort((a,b)=>(a.vx+a.vz)-(b.vx+b.vz)||(a.y+a.dy)-(b.y+b.dy)||a.vx-b.vx);
-  const drawnRound=new Set();
+  const drawnRound=new Set(),trig=new Map();
+  for(const c of cells){const p=list[c.pi];if(!p.shape)continue;const t=trig.get(c.pi);
+    if(!t||(c.vx+c.vz)>(t.vx+t.vz)||((c.vx+c.vz)===(t.vx+t.vz)&&c.y<t.y))trig.set(c.pi,c)}
   for(const c of cells){
     const p=list[c.pi],cols=COL[p.c],st=style(p,c.pi),y=c.y+c.dy+(st.off||0);
     g.globalAlpha=st.alpha;
+    if(p.shape){if(trig.get(c.pi)===c)drawShape(g,o,p,rot,N,st);continue}
     const free=p.free; // ficha suelta (fantasma o cayendo): solo choca consigo misma
     const nb=(dx,dy,dz)=>{if(free){const [wx,wz]=[c.vx+dx,c.vz+dz];return list[c.pi]&&cellIn(p,wx,c.y+dy,wz,rot,N)?c.pi:undefined}return own(c,dx,dy,dz)};
     if(p.round){if(!drawnRound.has(c.pi)){drawnRound.add(c.pi);const [vx,vz]=rotXZ(p.x,p.z,rot,N);
@@ -291,7 +346,7 @@ function newMini(){const ks=[];let e=placed;while(e<STEPS.length){const k=KEY(ST
   miniEnd=e;order=ks.sort(()=>Math.random()-.5)}
 const ICON={};
 function iconFor(s){const k=KEY(s);if(ICON[k])return ICON[k];const c=document.createElement('canvas');c.width=220;c.height=170;const g=c.getContext('2d');
-  const p=Object.assign({},s,{x:0,z:0,y:0});if(p.d>p.w){p.w=s.d;p.d=s.w}
+  const p=Object.assign({},s,{x:0,z:0,y:0});if(p.d>p.w){p.w=s.d;p.d=s.w;if(p.dir)p.dir={'z+':'x+','z-':'x-','x+':'z+','x-':'z-'}[p.dir];if(p.ax)p.ax=p.ax==='z'?'x':'z'}
   const o=fit(c,[p],0,8,.12);drawScene(g,o,[p],0,8,()=>({alpha:1}));return ICON[k]=c.toDataURL()}
 function remaining(k){let n=0;for(let i=placed;i<miniEnd;i++)if(KEY(STEPS[i])===k)n++;return n}
 function renderTray(fresh){
