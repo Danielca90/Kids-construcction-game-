@@ -1,13 +1,13 @@
 /* ---------- Personajes (minijuego) ---------- */
 .mode.chars{background:#ff9f1c;color:#fff;box-shadow:0 5px 0 #c96f00}
 .chaside{gap:10px}
-#chTabs{flex:0 0 auto;display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:10px}
-.chtab{border:0;border-radius:16px;background:#f2f8fc;font-size:28px;padding:6px 4px;display:flex;flex-direction:column;align-items:center;font-family:inherit;color:#24506b;box-shadow:0 3px 0 #d6e9f5}
-.chtab span{font-size:13px;font-weight:900}
+#chTabs{flex:0 0 auto;display:grid;grid-template-columns:repeat(4,1fr);gap:6px;padding:8px}
+.chtab{border:0;border-radius:14px;background:#f2f8fc;font-size:24px;padding:6px 4px;display:flex;flex-direction:column;align-items:center;font-family:inherit;color:#24506b;box-shadow:0 3px 0 #d6e9f5}
+.chtab span{font-size:11px;font-weight:900}
 .chtab.on{background:#ffd84d;box-shadow:0 3px 0 #d4a900}
 #chOpts{flex:1;min-height:0;padding:10px;display:flex;flex-direction:column;gap:8px;overflow:hidden}
-#chSkins{display:flex;gap:8px;justify-content:center}
-.chsk{width:34px;height:34px;border-radius:50%;border:3px solid #fff;box-shadow:0 0 0 2px #c9dbe6}
+#chSkins{display:flex;flex-wrap:wrap;gap:6px;justify-content:center}
+.chsk{width:28px;height:28px;border-radius:50%;border:3px solid #fff;box-shadow:0 0 0 2px #c9dbe6}
 .chsk.on{box-shadow:0 0 0 4px #24506b}
 #chGrid{flex:1;min-height:0;display:grid;grid-template-columns:1fr 1fr;grid-auto-rows:1fr;gap:8px}
 .chopt{border:0;border-radius:16px;background:#f2f8fc;padding:4px;min-height:0;touch-action:none;display:flex;align-items:center;justify-content:center}
@@ -18,7 +18,10 @@
 .chstage.chover{box-shadow:0 0 0 6px #ffd84d,0 4px 0 #9ccde6}
 #chFig{height:96%;aspect-ratio:260/505;max-width:96%}
 #chFig svg{width:100%;height:100%;overflow:visible}
-#chFig .part{cursor:pointer;transform-box:fill-box;transform-origin:center}
+#chFig{touch-action:none}
+#chFig .part{cursor:grab;transform-box:fill-box;transform-origin:center}
+#chFig .ring{filter:drop-shadow(0 2px 2px rgba(0,0,0,.25))}
+#chFig .ringhit{cursor:ns-resize}
 .chpop{animation:chpop .45s cubic-bezier(.3,1.6,.5,1) both}
 @keyframes chpop{0%{transform:scale(.4);opacity:0}100%{transform:scale(1);opacity:1}}
 .chghost{position:fixed;width:120px;height:120px;transform:translate(-50%,-75%);pointer-events:none;z-index:90;filter:drop-shadow(0 8px 10px rgba(0,0,0,.25))}
@@ -34,7 +37,8 @@
 .chgx{position:absolute;top:4px;right:4px;width:28px;height:28px;border:0;border-radius:50%;background:#ffe3e0;color:#a82015;font-weight:900}
 @media (orientation:portrait){
   .chaside{flex:0 0 40%}
-  #chTabs{grid-template-columns:repeat(2,1fr);flex:0 0 30%;align-content:start}
+  #chTabs{grid-template-columns:repeat(2,1fr);flex:0 0 30%;align-content:start;gap:4px;padding:6px}
+  .chsk{width:22px;height:22px}
   .chtab{font-size:22px;padding:4px}.chtab span{font-size:11px}
   #chGrid{grid-template-columns:repeat(3,1fr)}
   #chars header{gap:5px;padding:8px}#chars header .rbtn{width:36px;height:36px;flex-basis:36px;font-size:17px}
