@@ -18,6 +18,7 @@
       <button class="mode cont hidden" id="cont"></button>
       <button class="mode free" id="goFree">🎨 Modo libre</button>
       <button class="mode rescue" id="goRescue">🚨 Rescate</button>
+      <button class="mode chars" id="goChars">🧸 Personajes</button>
       <a class="mode m3d hidden" id="go3d" href="3d/">🧊 3D</a>
       <button class="mode papa hidden" id="goPapa"></button>
     </div>
@@ -37,6 +38,18 @@
     <section class="stage" id="stage"><div class="wrap" id="boardWrap"><div class="board" id="board"></div><div class="plate" id="plate"></div></div></section>
   </main>
 </div>
+<!-- PERSONAJES (minijuego) -->
+<div id="chars" class="screen hidden">
+  <header><button class="rbtn" id="chBack" aria-label="Inicio">⬅️</button><span class="name">🧸 Personajes</span><span class="sp"></span>
+    <button class="rbtn mus" aria-label="Música">🎵</button><button class="rbtn" id="chRand" aria-label="Sorpresa">🎲</button>
+    <button class="rbtn" id="chSave" aria-label="Guardar">💾</button><button class="rbtn chgal" id="chGal" aria-label="Galería">🖼️<i id="chGalN"></i></button>
+    <button class="rbtn" id="chClear" aria-label="Empezar de nuevo">🗑️</button></header>
+  <main>
+    <aside class="chaside"><div id="chTabs" class="panel"></div><div id="chOpts" class="panel"></div></aside>
+    <section class="stage chstage" id="chStage"><div id="chFig"></div></section>
+  </main>
+</div>
+<div id="chGalOv" class="ov"><div class="box"><h3>🖼️ Mis personajes</h3><div id="chGalGrid"></div><button class="pbtn ghostb" id="chGalClose">Cerrar</button></div></div>
 <!-- EDITOR (modo libre / modo papá) -->
 <div id="editor" class="screen hidden">
   <header><button class="rbtn" id="eBack" aria-label="Inicio">⬅️</button><span class="name" id="eTitle"></span><span class="sp"></span>

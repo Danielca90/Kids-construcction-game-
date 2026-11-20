@@ -28,6 +28,7 @@ JS_ORDER = [
     '14-mezclador.js',                 # mezclador de colores
     '15-editor-gestos.js',             # tocar, arrastrar, flechas, guardar
     '16-panel-papas.js',               # panel de papás, copias de seguridad
+    '17-personajes.js',                # minijuego: armar personajes
     '99-arranque.js',                  # arranque (siempre al final)
 ]
 
