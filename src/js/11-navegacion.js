@@ -1,6 +1,6 @@
 // ================== NAVEGACIÓN ==================
-function show(name){screen=name;['home','menu','game','editor','chars','trace'].forEach(n=>$('#'+n).classList.toggle('hidden',n!==name));
-  requestAnimationFrame(()=>{if(name==='home')renderHome();else if(name==='menu')renderMenu();else if(name==='game'){render();checkBag()}else if(name==='chars')renderChars();else if(name==='trace')renderTrace();else renderEditor()})}
+function show(name){screen=name;['home','menu','game','editor','chars','trace','world'].forEach(n=>$('#'+n).classList.toggle('hidden',n!==name));
+  requestAnimationFrame(()=>{if(name==='home')renderHome();else if(name==='menu')renderMenu();else if(name==='game'){render();checkBag()}else if(name==='chars')renderChars();else if(name==='trace')renderTrace();else if(name==='world')renderWorld();else renderEditor()})}
 function openFig(i){figIdx=i;const F=fig();curLvl=F.custom?'papa':F.set?F.set:F.lvl;save.last=F.id;
   const pr=save.prog[F.id];st=(pr&&pr.v===5&&pr.placed<F.steps.length&&progOk(F,pr))?pr:newState();
   clearTimeout(winT);clearTimeout(bagT);wrong=0;tray.classList.remove('wait');keep();busy=false;show('game')}

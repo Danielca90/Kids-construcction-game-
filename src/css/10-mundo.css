@@ -1,0 +1,9 @@
+/* ---------- Mundo ---------- */
+.mode.world{background:#7c4e2a;color:#fff;box-shadow:0 5px 0 #4f2f17}
+.mwstage{background:#8fd3ff}
+#mwCv{position:absolute;left:0;top:0;touch-action:none}
+#mwBar{position:absolute;left:50%;bottom:12px;transform:translateX(-50%);display:flex;gap:8px;background:rgba(255,255,255,.9);padding:8px 10px;border-radius:20px;box-shadow:0 3px 0 #9ccde6;max-width:94%;overflow-x:auto}
+.mwb{flex:0 0 auto;width:54px;height:54px;border:0;border-radius:14px;background:#f2f8fc;font-size:28px;position:relative;box-shadow:inset 0 -5px 0 rgba(0,0,0,.2)}
+.mwb.on{outline:4px solid #24506b;outline-offset:2px}
+.mwb i{position:absolute;right:-4px;bottom:-4px;background:#fff;color:#24506b;font-style:normal;font-size:13px;font-weight:900;border-radius:999px;padding:0 6px;box-shadow:0 1px 0 #9ccde6}
+@media (orientation:portrait){.mwb{width:44px;height:44px;font-size:22px}}

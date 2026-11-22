@@ -20,6 +20,7 @@
       <button class="mode rescue" id="goRescue">🚨 Rescate</button>
       <button class="mode chars" id="goChars">🧸 Personajes</button>
       <button class="mode trace" id="goTrace">✏️ Trazos</button>
+      <button class="mode world" id="goWorld">⛏️ Mundo</button>
       <a class="mode m3d hidden" id="go3d" href="3d/">🧊 3D</a>
       <button class="mode papa hidden" id="goPapa"></button>
     </div>
@@ -62,6 +63,12 @@
       <div id="trDots"></div><div id="trCols" class="hidden"></div>
       <div id="trWarn"><span>😣</span><b>¡Más suave!</b><small>Soft hands</small></div></section>
   </main>
+</div>
+<!-- MUNDO (bloques tipo Lego, visto de lado) -->
+<div id="world" class="screen hidden">
+  <header><button class="rbtn" id="mwBack" aria-label="Inicio">⬅️</button><span class="name">⛏️ Mundo</span><span class="sp"></span>
+    <span class="pill" id="mwCoins">🪙 0</span><button class="rbtn mus" aria-label="Música">🎵</button><button class="rbtn" id="mwNew" aria-label="Mundo nuevo">🌍</button></header>
+  <main><section class="stage mwstage" id="mwStage"><canvas id="mwCv"></canvas><div id="mwBar"></div></section></main>
 </div>
 <!-- EDITOR (modo libre / modo papá) -->
 <div id="editor" class="screen hidden">

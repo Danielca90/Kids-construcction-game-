@@ -30,6 +30,7 @@ JS_ORDER = [
     '16-panel-papas.js',               # panel de papás, copias de seguridad
     '17-personajes.js',                # minijuego: armar personajes
     '18-trazos.js',                    # trazos con dedo/Apple Pencil y presión
+    '19-mundo.js',                     # mundo de bloques tipo Lego
     '99-arranque.js',                  # arranque (siempre al final)
 ]
 
