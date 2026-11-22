@@ -1,0 +1,34 @@
+/* ---------- Trazos ---------- */
+.mode.trace{background:#4cb54a;color:#fff;box-shadow:0 5px 0 #2d8a2c}
+.traside{flex:0 0 clamp(150px,18vw,210px)}
+#trSheets{flex:1;min-height:0;overflow-y:auto;padding:8px;display:grid;grid-template-columns:1fr;gap:8px;align-content:start}
+.trsh{border:0;border-radius:16px;background:#f2f8fc;font-size:30px;padding:8px 6px;display:flex;flex-direction:column;align-items:center;font-family:inherit;color:#24506b;box-shadow:0 3px 0 #d6e9f5}
+.trsh span{font-size:14px;font-weight:900}.trsh b{font-size:12px;letter-spacing:-2px}
+.trsh.on{background:#ffd84d;box-shadow:0 3px 0 #d4a900}
+.trstage{background:#fffef8;background-image:linear-gradient(rgba(156,205,230,.25) 1px,transparent 1px);background-size:100% 34px}
+.trstage canvas{position:absolute;left:0;top:0}
+#trInk{touch-action:none}
+#trDots{position:absolute;left:50%;top:12px;transform:translateX(-50%);display:flex;gap:10px;pointer-events:none}
+#trDots i{width:18px;height:18px;border-radius:50%;background:#e2edf3;display:block}
+#trDots i.now{background:#ffd84d;box-shadow:0 0 0 3px #fff3b0}#trDots i.ok{background:#4cb54a}
+#trCols{position:absolute;left:50%;bottom:12px;transform:translateX(-50%);display:flex;gap:10px;background:rgba(255,255,255,.92);padding:8px 12px;border-radius:999px;box-shadow:0 3px 0 #9ccde6}
+.trc{width:40px;height:40px;border-radius:50%;border:3px solid #fff;box-shadow:0 0 0 2px #d6e9f5}
+.trc.on{box-shadow:0 0 0 4px #24506b}
+#trMeter{display:flex;align-items:center;gap:8px;background:#fff;border-radius:999px;padding:4px 12px;box-shadow:0 2px 0 #9ccde6;font-size:24px}
+#trMeter.hidden{display:none}
+.trbar{position:relative;width:150px;height:14px;border-radius:999px;background:linear-gradient(90deg,#9be27a,#4cb54a 55%,#fac80a 70%,#ff2d55)}
+#trZone{position:absolute;top:-5px;bottom:-5px;width:3px;background:#24506b;border-radius:2px}
+#trNeedle{position:absolute;top:-6px;width:12px;height:26px;margin-left:-6px;border-radius:6px;background:#fff;border:3px solid #24506b;transition:left .06s}
+#trMeter.strong{animation:trshake .25s linear infinite}
+@keyframes trshake{25%{transform:translateX(-3px)}75%{transform:translateX(3px)}}
+#trWarn{position:absolute;left:50%;top:40%;transform:translate(-50%,-50%) scale(.6);opacity:0;pointer-events:none;display:flex;flex-direction:column;align-items:center;background:#fff;border-radius:28px;padding:14px 26px;box-shadow:0 6px 0 #f0a9a1,0 10px 24px rgba(0,0,0,.18)}
+#trWarn span{font-size:56px}#trWarn b{font-size:30px;color:#e63b2e}#trWarn small{font-size:18px;font-weight:900;color:#5d86a0}
+#trWarn.show{animation:trwarn 1.8s ease forwards}
+@keyframes trwarn{0%{opacity:0;transform:translate(-50%,-50%) scale(.6)}12%,80%{opacity:1;transform:translate(-50%,-50%) scale(1)}100%{opacity:0;transform:translate(-50%,-50%) scale(.9)}}
+@media (orientation:portrait){
+  .traside{flex:0 0 auto}
+  #trSheets{grid-template-columns:repeat(8,minmax(64px,1fr));overflow-x:auto;overflow-y:hidden;grid-auto-flow:column}
+  .trsh{font-size:22px;padding:6px 4px}.trsh span{font-size:10px}
+  #trace header{gap:5px;padding:8px}#trace header .rbtn{width:36px;height:36px;flex-basis:36px;font-size:17px}
+  .trbar{width:80px}#trLim{font-size:13px;padding:0 8px}
+}

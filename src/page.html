@@ -19,6 +19,7 @@
       <button class="mode free" id="goFree">🎨 Modo libre</button>
       <button class="mode rescue" id="goRescue">🚨 Rescate</button>
       <button class="mode chars" id="goChars">🧸 Personajes</button>
+      <button class="mode trace" id="goTrace">✏️ Trazos</button>
       <a class="mode m3d hidden" id="go3d" href="3d/">🧊 3D</a>
       <button class="mode papa hidden" id="goPapa"></button>
     </div>
@@ -50,6 +51,18 @@
   </main>
 </div>
 <div id="chGalOv" class="ov"><div class="box"><h3>🖼️ Mis personajes</h3><div id="chGalGrid"></div><button class="pbtn ghostb" id="chGalClose">Cerrar</button></div></div>
+<!-- TRAZOS (como la hoja del libro; presión con Apple Pencil) -->
+<div id="trace" class="screen hidden">
+  <header><button class="rbtn" id="trBack" aria-label="Inicio">⬅️</button><span class="name" id="trTitle">✏️ Trazos</span><span class="sp"></span>
+    <div id="trMeter" class="hidden" title="Fuerza del lápiz"><span id="trBuddy">🙂</span><div class="trbar"><i id="trZone"></i><b id="trNeedle"></b></div></div>
+    <button class="wbtn" id="trLim">🔧 normal</button><button class="rbtn" id="trUndo" aria-label="Deshacer">↶</button><button class="rbtn" id="trClear" aria-label="Borrar">🧽</button></header>
+  <main>
+    <aside class="traside"><div id="trSheets" class="panel"></div></aside>
+    <section class="stage trstage" id="trStage"><canvas id="trGuide"></canvas><canvas id="trInk"></canvas>
+      <div id="trDots"></div><div id="trCols" class="hidden"></div>
+      <div id="trWarn"><span>😣</span><b>¡Más suave!</b><small>Soft hands</small></div></section>
+  </main>
+</div>
 <!-- EDITOR (modo libre / modo papá) -->
 <div id="editor" class="screen hidden">
   <header><button class="rbtn" id="eBack" aria-label="Inicio">⬅️</button><span class="name" id="eTitle"></span><span class="sp"></span>

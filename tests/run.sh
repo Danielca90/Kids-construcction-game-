@@ -18,5 +18,6 @@ echo "$out" | grep -q "errors \[\]" || fail=1
 run python3 t3d.py iphone
 run python3 coins.py
 run python3 personajes.py
+run python3 trazos.py
 if [ "$1" = "full" ]; then run python3 play.py iphone; run python3 play.py ipad; fi
 [ $fail = 0 ] && echo "✅ TODO BIEN — se puede publicar" || { echo "❌ HAY FALLAS — no publicar"; exit 1; }
