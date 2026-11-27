@@ -8,9 +8,19 @@ async def main():
     async with async_playwright() as playwright:
         browser, _, page, errors = await start(playwright, 'iphone')
         await page.tap('#diffs .diff[data-n="1"]')
+        await page.evaluate('''() => {
+          const observer = new MutationObserver(records => {
+            for(const record of records) {
+              for(const node of record.addedNodes) {
+                if(node.classList?.contains('guideHand')) window.demoRuns++;
+              }
+            }
+          });
+          window.demoRuns = 0;
+          observer.observe(document.body, {childList: true});
+        }''')
         await page.locator('#levels .card').first.tap()
-        hand = page.locator('.guideHand')
-        assert await hand.count() == 1
+        await page.wait_for_function('window.demoRuns === 1')
         await page.tap('#gameTarget')
         assert await page.locator('#tray .guidedLook').count() == 1
         await page.locator('#tray .tile:not(.next):not(.used)').first.tap()
@@ -26,7 +36,7 @@ async def main():
         assert await page.locator('#winTransfer').is_visible()
         await page.tap('#next')
         assert await page.locator('#tray .next').count() == 0
-        assert await hand.count() == 0
+        assert await page.evaluate('window.demoRuns') == 1
         await page.tap('#gameHint')
         assert await page.locator('#tray .next').count() == 1
 
