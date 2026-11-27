@@ -31,3 +31,44 @@
   #game header{gap:5px;padding:8px 8px}#game header .rbtn{width:36px;height:36px;flex-basis:36px;font-size:17px}
   #home header .rbtn{width:34px;height:34px;flex-basis:34px;font-size:16px}
 }
+
+/* Pistas y controles de construcción */
+button:focus-visible{outline:3px solid #145880;outline-offset:2px}
+#gameHint[aria-pressed=true]{background:#ffd84d}
+#gameTarget{position:absolute;z-index:10;border:0;border-radius:8px;background:transparent;min-width:32px;min-height:32px}
+#tray .tile.next .pw{animation:hop 1.5s ease-in-out 2}
+.guidedLook{outline:3px solid #b66800;outline-offset:3px;animation:guide-pulse .6s ease-in-out 2}
+@keyframes guide-pulse{50%{outline-width:6px}}
+.guideHand{position:fixed;z-index:75;font-size:34px;pointer-events:none}
+#win .box{width:min(410px,94vw);padding:18px}
+#winModel{position:relative;align-self:center}
+#win .btns{gap:10px}
+#win .btns button{display:grid;place-content:center;gap:4px;min-width:0;width:88px;height:66px;font:inherit;font-size:24px;background:#e8f4fb;box-shadow:0 4px 0 #9ccde6;border-radius:16px}
+#win .btns button span{font-size:13px;font-weight:800}
+#winTransfer,.winDetails{font-size:14px}
+#win .winDetails{order:1}
+#win #scoreLine,#win #earn{font-size:15px}
+#editor button:disabled{opacity:.45}
+#eSaveError{position:absolute;z-index:24;top:8px;left:8px;right:8px;padding:8px;background:#ffe3e0;border-radius:10px;text-align:center}
+#eFeedback:not(:empty){position:absolute;z-index:21;bottom:12px;left:50%;transform:translateX(-50%);padding:8px 12px;background:#24506b;color:white;border-radius:12px;white-space:nowrap;pointer-events:none}
+#ePalette,.clearActions button{border:0;background:#e8f4fb;border-radius:12px;color:#24506b;font:inherit;font-weight:800;padding:8px;min-height:44px}
+#eAside.quick .tile:not(.quickChoice),#eAside.quick .sw:not(.quickChoice),#eAside.quick .more{display:none!important}
+#eAside.quick #eColors{grid-template-columns:repeat(3,1fr);padding:8px;gap:6px;overflow:hidden}
+#eAside.quick #eShapes{grid-template-columns:repeat(2,1fr);grid-template-rows:repeat(2,minmax(0,1fr));grid-auto-flow:row;overflow:hidden;padding:8px;gap:6px}
+#eClearDlg{inset:0;margin:auto;width:min(330px,92vw);border:0;border-radius:20px;padding:22px;background:white;color:#24506b;text-align:center}
+#eClearDlg::backdrop{background:#143c5a77}
+#eClearDlg p{margin-top:8px}
+.clearActions{display:flex;justify-content:center;gap:10px;margin-top:16px}
+.clearActions button:last-child{background:#ffe3e0}
+.diff .price{font-size:clamp(12px,2.8vw,16px);padding:2px 6px}
+@media (orientation:portrait){
+  #eAside:has(#ePalette:not(.hidden)){display:grid;grid-template-columns: minmax(108px,37%) 1fr;grid-template-rows:minmax(0,1fr) auto;gap:8px}
+  #ePalette{grid-column:1/-1;padding:4px}
+  #eAside.quick #eColors{align-content:center}
+  #eAside.quick #eColors .sw{min-height:38px}
+  #eAside.quick #eShapes .tile{touch-action:none}
+  #editor header .name{font-size:16px}
+}
+@media (prefers-reduced-motion:reduce){
+  .guidedLook,#tray .tile.next .pw,#win .box{animation:none}
+}

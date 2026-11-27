@@ -9,10 +9,13 @@ const C_SIMPLE=['r','y','a','g','o','w','x','m','n','b','p','k','L','D','C','M',
 let E_COLS=14,E_ROWS=30,E_SHAPES=E_SIMPLE;
 function edDims(){const papa=ed.mode==='papa';E_COLS=papa?20:14;E_ROWS=papa?45:30;E_SHAPES=papa?E_FULL:E_SIMPLE}
 const E_EMOS=['🚗','🏠','🤖','🦖','🚀','🏰','⛵','🐶','🌳','✈️','🚜','⭐'];
-let ed={mode:'free',k:'b2',c:'r',rm:false,hist:[],C:30,sure:false,sel:-1};
+const QUICK_SHAPES=E_SIMPLE.slice(0,4),QUICK_COLORS=C_SIMPLE.slice(0,6);
+let ed={mode:'free',k:'b2',c:'r',rm:false,hist:[],C:30,sel:-1,expanded:false};
 const edPieces=()=>ed.mode==='free'?save.free:save.draft.pieces;
-function setPieces(a){if(ed.mode==='free')save.free=a;else save.draft.pieces=a;persist()}
-function openEditor(mode){ed.mode=mode;ed.sel=-1;ed.rm=false;ed.hist=[];ed.sure=false;edDims();if(!COL[ed.c])ed.c='r';if(!E_SHAPES.includes(ed.k))ed.k='b2';show('editor')}
+function setPieces(a){if(ed.mode==='free'){save.free=a;save.freeUndo=ed.hist}else save.draft.pieces=a;
+  $('#eSaveError').classList.toggle('hidden',persist())}
+function openEditor(mode){ed.mode=mode;ed.sel=-1;ed.rm=false;ed.hist=mode==='free'?freeHistory():[];ed.expanded=false;edDims();if(!COL[ed.c]||(mode==='free'&&!QUICK_COLORS.includes(ed.c)))ed.c='r';
+  if(!E_SHAPES.includes(ed.k)||(mode==='free'&&!QUICK_SHAPES.includes(ed.k)))ed.k='b2';show('editor')}
 // flechas 👈 👉 de la bandeja: solo cuando hay fichas escondidas a un lado
 function updMore(){const sh=$('#eShapes'),h=sh.scrollWidth>sh.clientWidth+4;
   $('#moreR').classList.toggle('hidden',!h||sh.scrollLeft+sh.clientWidth>=sh.scrollWidth-4);
@@ -22,20 +25,29 @@ function renderEditor(){
   $('#eTitle').textContent=papa?(save.draft.id?'👨‍🔧 Editando: '+(save.custom.find(c=>c.id===save.draft.id)||{}).name:'👨‍🔧 Modelo nuevo'):'🎨 Modo libre';
   document.querySelectorAll('.papaOnly').forEach(b=>b.classList.toggle('hidden',!papa));
   $('#eRm').classList.toggle('on',ed.rm);
-  $('#eClear').textContent=ed.sure?'❓':'🗑️';
+  $('#eRm').setAttribute('aria-pressed',ed.rm);
+  $('#eAside').classList.toggle('quick',!papa&&!ed.expanded);
+  $('#ePalette').classList.toggle('hidden',papa);
+  $('#ePalette').setAttribute('aria-expanded',ed.expanded);
+  $('#ePalette').innerHTML=ed.expanded?'➖ <span>Menos piezas y colores</span>':'➕ <span>Más piezas y colores</span>';
   // colores
-  const cs=$('#eColors');cs.innerHTML='';
+  const cs=$('#eColors'),sh=$('#eShapes');
+  const colorFocus=cs.contains(document.activeElement)?document.activeElement.dataset.c:null;
+  const shapeFocus=sh.contains(document.activeElement)?document.activeElement.dataset.k:null;
+  cs.innerHTML='';
   const base=ed.mode==='papa'?Object.keys(COL).filter(c=>c!=='x'||true).filter(c=>!/^c\d/.test(c)):C_SIMPLE;
-  base.concat(save.mix.map(m=>m.k)).forEach(c=>{const b=document.createElement('button');b.className='sw'+(c===ed.c?' sel':'')+(/^[TUVY]$/.test(c)?' trans':'')+(/^c\d/.test(c)?' mixd':'');b.dataset.c=c;b.style.background=COL[c][0];cs.appendChild(b)});
-  {const b=document.createElement('button');b.className='sw mixb';b.id='mixOpen';b.textContent='🎨';cs.appendChild(b)}
+  base.concat(save.mix.map(m=>m.k)).forEach(c=>{const b=document.createElement('button');b.className='sw'+(c===ed.c?' sel':'')+(/^[TUVY]$/.test(c)?' trans':'')+(/^c\d/.test(c)?' mixd':'');b.dataset.c=c;b.classList.toggle('quickChoice',QUICK_COLORS.includes(c));b.setAttribute('aria-label',cap(colName(c)));b.setAttribute('aria-pressed',c===ed.c);b.style.background=COL[c][0];cs.appendChild(b)});
+  {const b=document.createElement('button');b.className='sw mixb';b.id='mixOpen';b.setAttribute('aria-label','Mezclar colores');b.textContent='🎨';cs.appendChild(b)}
   // formas (en el color elegido)
-  const sh=$('#eShapes');sh.innerHTML='';
-  E_SHAPES.forEach(k=>{const b=document.createElement('button');b.className='tile'+(k===ed.k&&!ed.rm?' sel':'');b.dataset.k=k;sh.appendChild(b)});
+  sh.innerHTML='';
+  E_SHAPES.forEach(k=>{const b=document.createElement('button');b.className='tile'+(k===ed.k&&!ed.rm?' sel':'');b.dataset.k=k;b.classList.toggle('quickChoice',QUICK_SHAPES.includes(k));b.setAttribute('aria-label',cap(enShape(k)));b.setAttribute('aria-pressed',k===ed.k&&!ed.rm);sh.appendChild(b)});
   const t0=sh.firstChild,tw=t0.clientWidth,th=t0.clientHeight;
   let uc=40;E_SHAPES.forEach(k=>{const T=CAT[k];if(T.h>6||T.w>8)return;uc=Math.min(uc,tw*.82/Math.min(T.w,4),th*.62/(T.h*PL+.25))});
   sh.querySelectorAll('.tile').forEach(b=>{const k=b.dataset.k,T=CAT[k],c=Math.min(uc*Math.min(1,4/T.w),uc,th*.8/(T.h*PL+.25),tw*.9/T.w);
     const s=P(k,pcCol(k,ed.c),0,0),pw=document.createElement('div');pw.className='pw';pw.style.width=T.w*c+'px';pw.style.height=T.h*c*PL+'px';
     const p=pieceEl(s,c);p.style.left='0';p.style.top='0';pw.appendChild(p);b.appendChild(pw)});
+  if(colorFocus)cs.querySelector('[aria-pressed="true"]')?.focus({preventScroll:true});
+  if(shapeFocus)sh.querySelector('[aria-pressed="true"]')?.focus({preventScroll:true});
   drawEditorBoard();requestAnimationFrame(updMore);
 }
 function drawEditorBoard(){
@@ -54,6 +66,8 @@ function drawEditorBoard(){
   edPieces().forEach((p,i)=>{const s=P(p.k,p.c,p.x,p.y),el=at(pieceEl(s,c),s,c,E_ROWS);el.dataset.i=i;if(i===ed.sel)el.classList.add('sel-pc');fr.appendChild(el)});
   $('#arrows').classList.toggle('hidden',!(ed.sel>=0&&ed.sel<edPieces().length));
   B.appendChild(fr);
+  $('#eUndo').disabled=!ed.hist.length;
+  $('#eClear').disabled=!edPieces().length;
   $('#eCount').textContent='🧱 '+edPieces().length;
 }
 // ¿cabe la ficha ahí sin chocar?
@@ -92,6 +106,31 @@ function placeAt(k,spot){buzz(12);const pcs=edPieces();snapshot();pcs.push({k,c:
 let preview=null;
 function showPreview(k,spot){if(preview){preview.remove();preview=null}if(!spot)return;
   preview=at(pieceEl(P(k,pcCol(k,ed.c),spot.x,spot.y),ed.C),P(k,'x',spot.x,spot.y),ed.C,E_ROWS);preview.classList.add('preview');$('#eBoard').appendChild(preview)}
-function snapshot(){ed.hist.push(JSON.stringify(edPieces()));if(ed.hist.length>80)ed.hist.shift()}
+const UNDO_LIMIT=80,UNDO_BYTES=600000;
+function freeHistory(){
+  if(!Array.isArray(save.freeUndo))return [];
+  return save.freeUndo.slice(-UNDO_LIMIT).filter(entry=>{
+    if(typeof entry!=='string'||entry.length>UNDO_BYTES)return false;
+    try{
+      const pieces=JSON.parse(entry);
+      return Array.isArray(pieces)&&pieces.every(p=>p&&CAT[p.k]&&COL[p.c]&&Number.isInteger(p.x)&&Number.isInteger(p.y));
+    }catch(e){return false}
+  });
+}
+function snapshot(){
+  ed.hist.push(JSON.stringify(edPieces()));
+  if(ed.hist.length>UNDO_LIMIT)ed.hist.shift();
+  if(ed.mode==='free'){
+    let size=ed.hist.reduce((sum,entry)=>sum+entry.length,0);
+    while(size>UNDO_BYTES&&ed.hist.length>1)size-=ed.hist.shift().length;
+  }
+}
+let editorFeedbackTimer;
+function placementBlocked(){
+  sPop();
+  const el=$('#eFeedback');el.textContent='✋ No cabe aquí';
+  clearTimeout(editorFeedbackTimer);
+  editorFeedbackTimer=setTimeout(()=>el.textContent='',1100);
+}
 $('#eColors').addEventListener('click',ev=>{const b=ev.target.closest('.sw');if(!b)return;if(b.id==='mixOpen'){ac();sTap();openMixer();return}ac();sTap();ed.c=b.dataset.c;ed.rm=false;renderEditor();
   say(cap(colName(ed.c)));word(cap(colName(ed.c)),COL[ed.c][0],$('#eStage'))});

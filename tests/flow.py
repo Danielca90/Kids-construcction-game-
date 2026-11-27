@@ -126,6 +126,7 @@ async def main():
     await page.tap('#goFree');await page.wait_for_timeout(200)
     chk('free mode after dad mode: 29 shapes 14x30, free pieces intact',await page.evaluate("[ed.mode,document.querySelectorAll('#eShapes .tile').length,E_COLS,E_ROWS,save.free.length]")==['free',29,14,30,1],await page.evaluate("[ed.mode,document.querySelectorAll('#eShapes .tile').length,E_COLS,E_ROWS,save.free.length]"))
     # ---------- mixer ----------
+    await page.tap('#ePalette')
     await page.evaluate("$('#mixOpen').scrollIntoView()");await page.tap('#mixOpen');await page.wait_for_timeout(100)
     chk('mixer opens, save disabled when empty',await page.evaluate("$('#mixer').classList.contains('show')&&$('#mixOk').disabled"))
     await page.tap('#mixPal .sw[data-c="r"]');await page.tap('#mixPal .sw[data-c="y"]')

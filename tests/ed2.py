@@ -55,7 +55,7 @@ async def main():
         if not await page.evaluate('ed.hist.length'):break
         await page.tap('#eUndo')
     chk('undo to empty (hist<=80)',len(await pcs(page))==0 or hist>=80,(hist,len(await pcs(page))))
-    await page.tap('#eUndo');chk('undo on empty history harmless',not errs,errs)
+    chk('undo on empty history is disabled',await page.locator('#eUndo').is_disabled() and not errs,errs)
     # rebuild 3 stacked
     await page.evaluate('setPieces([]);ed.hist=[];drawEditorBoard()')
     for i in range(3):
@@ -73,10 +73,10 @@ async def main():
     c=await boardpt(page,1,20);await page.touchscreen.tap(*c);chk('eraser tap on empty: no change',len(await pcs(page))==2)
     await page.tap('#eRm');chk('eraser toggles off',not await page.evaluate('ed.rm'))
     # E5 clear
-    await page.tap('#eClear');await page.wait_for_timeout(60);chk('clear asks confirmation',await page.evaluate('ed.sure') and len(await pcs(page))==2)
-    await page.wait_for_timeout(2700);chk('clear confirmation times out',not await page.evaluate('ed.sure') and await page.evaluate("$('#eClear').textContent")=='🗑️')
-    await page.tap('#eClear');await page.wait_for_timeout(60);await page.tap('#eClear');await page.wait_for_timeout(60)
-    chk('clear on 2nd tap',len(await pcs(page))==0)
+    await page.tap('#eClear');await page.wait_for_timeout(60);chk('clear asks confirmation',await page.locator('#eClearDlg').is_visible() and len(await pcs(page))==2)
+    await page.tap('#eClearNo');chk('cancel keeps both pieces',len(await pcs(page))==2)
+    await page.tap('#eClear');await page.tap('#eClearYes');await page.wait_for_timeout(60)
+    chk('clear on explicit confirmation',len(await pcs(page))==0)
     await page.tap('#eUndo');chk('undo clear',len(await pcs(page))==2)
     # E9 drag a placed piece
     P_=await pcs(page);q=P_[0];a=await boardpt(page,q['x']+2,q['y']+1.5);d=await boardpt(page,2,1.5)
@@ -97,6 +97,7 @@ async def main():
     errs_drag=list(errs);errs.clear()
     # every shape x placement
     await page.evaluate('setPieces([]);ed.hist=[];drawEditorBoard()')
+    await page.tap('#ePalette')
     shapes=await page.evaluate('E_SHAPES');bad=[]
     for k in shapes:
         await tapsel(page,k)
@@ -140,13 +141,16 @@ async def main():
             if n:
                 a=await center(page,f'#eBoard .pc[data-i="{random.randrange(n)}"]');d=await boardpt(page,random.uniform(-2,16),random.uniform(-3,33))
                 await drag(page,ctx,a[0],a[1],d[0],d[1],5,cdp)
-        elif r<.8: await page.tap('#eUndo')
+        elif r<.8:
+            if await page.locator('#eUndo').is_enabled(): await page.tap('#eUndo')
         elif r<.88:
             await page.tap('#eRm');n=len(await pcs(page))
             if n and await page.evaluate('ed.rm'):
                 c=await center(page,f'#eBoard .pc[data-i="{random.randrange(n)}"]');await page.touchscreen.tap(c[0],c[1])
             if await page.evaluate('ed.rm'): await page.tap('#eRm')
-        elif r<.9: await page.tap('#eClear')
+        elif r<.9:
+            if await page.locator('#eClear').is_enabled():
+                await page.tap('#eClear');await page.tap('#eClearYes')
         else:
             t=await center(page,'#eShapes .tile');d=await boardpt(page,random.uniform(0,14),random.uniform(0,20));await drag(page,ctx,t[0],t[1],d[0],d[1],5,cdp)
         inv=await page.evaluate(INV)

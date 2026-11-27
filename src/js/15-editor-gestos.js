@@ -16,11 +16,11 @@ document.addEventListener('pointermove',ev=>{if(!drag)return;
 document.addEventListener('pointerup',ev=>{if(!drag)return;const d=drag;drag=null;
   if(!d.moved){selShape(d.k);return}   // toque simple: elegir la ficha (no depender del click, que a veces se pierde)
   d.el.remove();const spot=snapSpot(d.k,ev.clientX,ev.clientY-30-d.h/2);showPreview(null,null);
-  if(spot){placeAt(d.k,spot);const nm=(FIXCOL[d.k]?'':colName(ed.c)+' ')+enShape(d.k);say(cap(nm))}else sPop();
+  if(spot){placeAt(d.k,spot);const nm=(FIXCOL[d.k]?'':colName(ed.c)+' ')+enShape(d.k);say(cap(nm))}else placementBlocked();
   renderEditor();
 });
 let lastSel=0;
-$('#eShapes').addEventListener('click',ev=>{const b=ev.target.closest('.tile');if(!b||Date.now()-lastSel<600)return;selShape(b.dataset.k)});
+$('#eShapes').addEventListener('click',ev=>{const b=ev.target.closest('.tile');if(!b||(ev.detail>0&&Date.now()-lastSel<600))return;selShape(b.dataset.k)});
 function selShape(k){lastSel=Date.now();ac();sTap();ed.k=k;ed.rm=false;ed.sel=-1;renderEditor();
   const nm=(FIXCOL[ed.k]?'':colName(ed.c)+' ')+enShape(ed.k);say(cap(nm));word(cap(nm),FIXCOL[ed.k]?'#fff':COL[ed.c][0],$('#eStage'))}
 $('#eStage').addEventListener('pointerdown',ev=>{
@@ -35,7 +35,7 @@ $('#eStage').addEventListener('pointerdown',ev=>{
   if(el&&el.dataset.i!==undefined){pmove={i:+el.dataset.i,x0:ev.clientX,y0:ev.clientY,moved:false,el:null};return}
   if(ed.sel>=0){ed.sel=-1;drawEditorBoard();return}            // tocar vacío: suelta la selección
   const spot=snapSpot(ed.k,ev.clientX,ev.clientY);
-  if(!spot){sPop();return}
+  if(!spot){placementBlocked();return}
   placeAt(ed.k,spot);
 });
 // mover una ficha ya puesta: tocar = seleccionar (flechas), arrastrar = llevarla a otro lugar
@@ -54,11 +54,11 @@ document.addEventListener('pointerup',ev=>{if(!pmove)return;const m=pmove;pmove=
   if(!m.moved){ed.sel=ed.sel===m.i?-1:m.i;sTap();drawEditorBoard();if(ed.sel>=0){const p=edPieces()[ed.sel];say(cap((FIXCOL[p.k]?'':colName(p.c)+' ')+enShape(p.k)))}return}
   m.el.remove();if(preview){preview.remove();preview=null}
   const pcs=edPieces(),p=pcs[m.i],spot=snapSpot(p.k,ev.clientX,ev.clientY-30-m.h/2,m.i);
-  if(spot){snapshot();p.x=spot.x;p.y=spot.y;setPieces(pcs);sSnap();buzz(12)}else sPop();
+  if(spot){snapshot();p.x=spot.x;p.y=spot.y;setPieces(pcs);sSnap();buzz(12)}else placementBlocked();
   drawEditorBoard();
 });
 // flechas: ◀ ▶ de a un botón, ▲ ▼ de a un ladrillo (o una placa si la ficha es plana)
-$('#arrows').addEventListener('pointerdown',ev=>{
+$('#arrows').addEventListener('click',ev=>{
   ev.stopPropagation();const b=ev.target.closest('button');if(!b)return;ac();
   const pcs=edPieces(),i=ed.sel,p=pcs[i];if(!p)return;
   const mv=b.dataset.mv;
@@ -74,15 +74,30 @@ $('#arrows').addEventListener('pointerdown',ev=>{
     if(L.length)ny=dy>0?Math.min(...L):Math.max(...L);
   }
   const ok=nx>=0&&nx+T.w<=E_COLS&&ny>=0&&ny+T.h<=E_ROWS&&(nx!==p.x||ny!==p.y)&&freeAt(pcs,p.k,nx,ny,i);
-  if(!ok){const el=$('#eBoard').querySelector(`[data-i="${i}"]`);if(el){el.animate([{transform:'translateX(0)'},{transform:'translateX(-6px)'},{transform:'translateX(6px)'},{transform:'translateX(0)'}],{duration:250})}sPop();return}
+  if(!ok){const el=$('#eBoard').querySelector(`[data-i="${i}"]`);if(el){el.animate([{transform:'translateX(0)'},{transform:'translateX(-6px)'},{transform:'translateX(6px)'},{transform:'translateX(0)'}],{duration:250})}placementBlocked();return}
   snapshot();p.x=nx;p.y=ny;setPieces(pcs);sTap();buzz(8);drawEditorBoard();
 });
-$('#eUndo').addEventListener('pointerdown',()=>{ac();ed.sel=-1;if(!ed.hist.length)return;setPieces(JSON.parse(ed.hist.pop()));sPop();drawEditorBoard()});
-$('#eRm').addEventListener('pointerdown',()=>{ac();ed.sel=-1;ed.rm=!ed.rm;renderEditor()});
-$('#eClear').addEventListener('pointerdown',()=>{ac();if(!edPieces().length)return;
-  if(!ed.sure){ed.sure=true;renderEditor();setTimeout(()=>{if(ed.sure){ed.sure=false;if(screen==='editor')renderEditor()}},2500);return}
-  ed.sure=false;snapshot();setPieces([]);sPop();renderEditor()});
-$('#eBack').addEventListener('pointerdown',()=>{ac();show('home')});
+$('#eUndo').addEventListener('click',()=>{ac();ed.sel=-1;if(!ed.hist.length)return;setPieces(JSON.parse(ed.hist.pop()));sPop();drawEditorBoard()});
+$('#eRm').addEventListener('click',()=>{ac();ed.sel=-1;ed.rm=!ed.rm;renderEditor()});
+$('#ePalette').addEventListener('click',()=>{
+  ac();ed.expanded=!ed.expanded;
+  if(!ed.expanded){
+    if(!QUICK_SHAPES.includes(ed.k))ed.k='b2';
+    if(!QUICK_COLORS.includes(ed.c))ed.c='r';
+  }
+  renderEditor();$('#eShapes').scrollTo(0,0);$('#eColors').scrollTo(0,0);
+});
+$('#eClear').addEventListener('click',()=>{
+  ac();const n=edPieces().length;if(!n)return;
+  $('#eClearCount').textContent=`🧱 ${n} ${n===1?'ficha':'fichas'}`;
+  $('#eClearDlg').showModal();
+});
+$('#eClearNo').addEventListener('click',()=>$('#eClearDlg').close());
+$('#eClearYes').addEventListener('click',()=>{
+  ac();$('#eClearDlg').close();ed.sel=-1;ed.rm=false;
+  snapshot();setPieces([]);sPop();renderEditor();$('#eUndo').focus();
+});
+$('#eBack').addEventListener('click',()=>{ac();show('home')});
 $('#eImport').addEventListener('pointerdown',()=>{ac();if(!save.free.length)return;snapshot();setPieces(JSON.parse(JSON.stringify(save.free)));sSnap();drawEditorBoard()});
 // ---- guardar como modelo (papá) ----
 let sEmo='🚗';

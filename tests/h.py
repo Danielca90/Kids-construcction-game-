@@ -1,4 +1,4 @@
-import asyncio, json, sys
+import asyncio, json, os, sys
 from playwright.async_api import async_playwright
 import pathlib as _pl
 REPO=_pl.Path(__file__).resolve().parent.parent
@@ -10,7 +10,8 @@ VP={'ipad':dict(viewport={'width':1080,'height':810},has_touch=True,is_mobile=Tr
     'iphone':dict(viewport={'width':393,'height':852},has_touch=True,is_mobile=True,device_scale_factor=3),
     'iphonel':dict(viewport={'width':852,'height':393},has_touch=True,is_mobile=True,device_scale_factor=3)}
 async def start(p,vp='ipad',url=ROOT,init=None,rate=None):
-    b=await p.chromium.launch(executable_path='/usr/bin/google-chrome',args=['--no-sandbox','--autoplay-policy=no-user-gesture-required'])
+    channel=os.getenv('FICHITAS_BROWSER_CHANNEL','chrome') or None
+    b=await p.chromium.launch(channel=channel,args=['--no-sandbox','--autoplay-policy=no-user-gesture-required'])
     ctx=await b.new_context(**VP[vp])
     if init: await ctx.add_init_script(init)
     page=await ctx.new_page()

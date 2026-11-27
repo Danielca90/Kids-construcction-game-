@@ -31,10 +31,10 @@
 </div>
 <!-- JUEGO -->
 <div id="game" class="screen hidden">
-  <header><button class="rbtn" id="homeBtn" aria-label="Modelos">🏠</button><span class="name" id="figName"></span><span class="sp"></span><span class="pill" id="bagPill"></span><span class="pill" id="scorePill">🎯 0</span><span class="pill" id="stars">⭐ 0</span><button class="rbtn mus" aria-label="Música">🎵</button><button class="rbtn snd" aria-label="Sonido">🔊</button></header>
+  <header><button class="rbtn" id="homeBtn" aria-label="Modelos">🏠</button><span class="name" id="figName"></span><span class="sp"></span><span class="pill" id="bagPill"></span><button class="rbtn" id="gameHint" aria-label="Mostrar pista" aria-pressed="false">💡</button><span class="pill" id="scorePill">🎯 0</span><span class="pill" id="stars">⭐ 0</span><button class="rbtn mus" aria-label="Música">🎵</button><button class="rbtn snd" aria-label="Sonido">🔊</button></header>
   <main>
     <aside><div id="modelBox" class="panel"><div id="model"></div></div><div id="tray" class="panel"></div></aside>
-    <section class="stage" id="stage"><div class="wrap" id="boardWrap"><div class="board" id="board"></div><div class="plate" id="plate"></div></div></section>
+    <section class="stage" id="stage"><div class="wrap" id="boardWrap"><div class="board" id="board"></div><button id="gameTarget" class="hidden" aria-label="Buscar la ficha de esta silueta"></button><div class="plate" id="plate"></div></div></section>
   </main>
 </div>
 <!-- EDITOR (modo libre / modo papá) -->
@@ -43,20 +43,26 @@
     <span class="pill" id="eCount">🧱 0</span>
     <button class="rbtn mus" aria-label="Música">🎵</button>
     <button class="rbtn" id="eUndo" aria-label="Deshacer">↶</button>
-    <button class="rbtn" id="eRm" aria-label="Quitar">🧽</button>
+    <button class="rbtn" id="eRm" aria-label="Quitar una ficha" aria-pressed="false">🧽</button>
     <button class="rbtn" id="eClear" aria-label="Borrar todo">🗑️</button>
     <button class="wbtn papaOnly" id="eImport">📥<span class="tx"> Traer modo libre</span></button>
     <button class="wbtn gold papaOnly" id="eSave">💾<span class="tx"> Guardar</span></button></header>
   <main>
-    <aside id="eAside"><div id="eColors" class="panel"></div><div id="eShapes" class="panel"></div><button id="moreL" class="more hidden" aria-label="Ver fichas">👈</button><button id="moreR" class="more hidden" aria-label="Ver más fichas">👉</button></aside>
-    <section class="stage" id="eStage"><div class="wrap" id="eWrap"><div class="board" id="eBoard"></div><div class="plate" id="ePlate"></div></div>
+    <aside id="eAside"><div id="eColors" class="panel"></div><div id="eShapes" class="panel"></div><button id="ePalette" aria-expanded="false" aria-controls="eColors eShapes">➕ <span>Más piezas y colores</span></button><button id="moreL" class="more hidden" aria-label="Ver fichas">👈</button><button id="moreR" class="more hidden" aria-label="Ver más fichas">👉</button></aside>
+    <section class="stage" id="eStage"><div id="eFeedback" role="status"></div><div id="eSaveError" class="hidden" role="alert">⚠️ El dispositivo no pudo guardar la construcción.</div><div class="wrap" id="eWrap"><div class="board" id="eBoard"></div><div class="plate" id="ePlate"></div></div>
       <div id="arrows" class="hidden"><button data-mv="L">◀</button><button data-mv="U">▲</button><button data-mv="D">▼</button><button data-mv="R">▶</button><button data-mv="X" class="del">🗑️</button><button data-mv="OK" class="ok">✓</button></div></section>
   </main>
 </div>
 <!-- capas -->
+<dialog id="eClearDlg" aria-labelledby="eClearTitle">
+  <h2 id="eClearTitle">🗑️ ¿Borrar todo?</h2>
+  <p id="eClearCount"></p>
+  <p>↶ Puedes deshacerlo.</p>
+  <div class="clearActions"><button id="eClearNo" autofocus>✕ Cancelar</button><button id="eClearYes">✓ Borrar todo</button></div>
+</dialog>
 <div id="bag" class="ov"><button id="bagBtn"><span class="pk">📦</span><span class="n" id="bagN"></span><span class="s" id="bagS"></span></button></div>
-<div id="win" class="ov"><div class="box"><div class="star">⭐</div><h2>¡Lo lograste!</h2><div id="scoreLine"></div><div id="earn" class="earn"></div><div id="lockInfo" class="lockinfo hidden"></div>
-  <div class="btns"><button id="home2" aria-label="Modelos">🏠</button><button id="again" aria-label="Otra vez">↻</button><button id="next" aria-label="Siguiente">▶</button></div></div></div>
+<div id="win" class="ov" role="dialog" aria-labelledby="winTitle"><div class="box"><div id="winModel" aria-hidden="true"></div><h2 id="winTitle">¡Lo construiste!</h2><p id="winTransfer" class="hidden">👀 Mira la forma y el color en la siguiente figura. 💡 Puedes pedir una pista.</p><div id="lockInfo" class="lockinfo hidden"></div><details class="winDetails"><summary>Detalles de la partida</summary><div id="scoreLine"></div><div id="earn" class="earn"></div></details>
+  <div class="btns"><button id="home2">🏠<span>Modelos</span></button><button id="again">↻<span>Otra vez</span></button><button id="next">▶<span>Siguiente</span></button></div></div></div>
 <div id="buy" class="ov"><div class="box">
   <div style="font-size:64px;line-height:1">🔓</div><h3 id="buyT"></h3><div id="buyP" class="earn"></div>
   <div class="btns"><button id="buyNo" style="font-size:30px;width:72px;height:72px;background:#e8f4fb;box-shadow:0 5px 0 #9ccde6">✕</button><button id="buyOk" style="font-size:40px;width:96px;height:96px;background:#ffd84d;box-shadow:0 6px 0 #d4a900">✓</button></div>
