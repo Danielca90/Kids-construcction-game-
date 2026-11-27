@@ -18,7 +18,7 @@ $('#mixPal').addEventListener('click',ev=>{const b=ev.target.closest('.sw');if(!
 $('#mixEmpty').addEventListener('click',()=>{mixDrops=[];sPop();drawMixer()});
 $('#mixClose').addEventListener('click',()=>$('#mixer').classList.remove('show'));
 $('#mixPick').addEventListener('input',ev=>{mixDrops=[];$('#mixPot').style.background=ev.target.value;$('#mixOk').disabled=false;$('#mixPot').dataset.pick=ev.target.value});
-function usedCols(){const u=new Set();[save.free,save.draft.pieces].concat(save.custom.map(c=>c.pieces||[])).forEach(a=>(a||[]).forEach(p=>u.add(p.c)));return u}
+function usedCols(){const u=new Set();[save.free,save.draft.pieces,...freeHistory().map(entry=>JSON.parse(entry))].concat(save.custom.map(c=>c.pieces||[])).forEach(a=>(a||[]).forEach(p=>u.add(p.c)));return u}
 $('#mixOk').addEventListener('click',()=>{const h=mixResult()||$('#mixPot').dataset.pick;if(!h)return;
   const ex=save.mix.find(m=>m.h===h);let k;
   if(ex)k=ex.k;else{

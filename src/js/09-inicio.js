@@ -29,7 +29,8 @@ function renderHome(){
     const d=DIFF[n],figs=FIGURES.filter(F=>F.lvl===n&&!F.set),done=figs.filter(F=>save.stars[F.id]>0).length;
     const b=document.createElement('button');b.className='diff'+(lvlUnlocked(n)?'':' locked')+(canBuy(n)?' can':'');b.dataset.n=n;
     b.style.background=d.bg;b.style.boxShadow=`0 6px 0 ${d.sh}`;
-    b.innerHTML=`<span class="emo">${d.emo}</span><span class="num">${n}</span><span class="rng">${LEVELS[n].range} fichas</span>${lvlUnlocked(n)?`<span class="ds">⭐ ${done}/${figs.length}</span>`:`<span class="price">🪙 ${LEVEL_COST[n]}</span>`}`;
+    const requirement=!lvlUnlocked(n-1)?`Abre el nivel ${n-1}`:`🪙 ${Math.min(save.coins||0,LEVEL_COST[n])}/${LEVEL_COST[n]}`;
+    b.innerHTML=`<span class="emo">${d.emo}</span><span class="num">${n}</span><span class="rng">${LEVELS[n].range} fichas</span>${lvlUnlocked(n)?`<span class="ds">⭐ ${done}/${figs.length}</span>`:`<span class="price">${requirement}</span>`}`;
     D.appendChild(b);
   }
 }

@@ -16,8 +16,17 @@ async def main():
     # ---------- home, locks, buying ----------
     chk('home: 7 difficulty tiles',await page.evaluate("document.querySelectorAll('#diffs .diff').length")==7)
     chk('fresh save: only level 1 unlocked',await page.evaluate("[...document.querySelectorAll('#diffs .diff')].map(d=>d.classList.contains('locked'))")==[False]+[True]*6)
-    await tp(page,'#diffs .diff[data-n="2"]');await page.wait_for_timeout(100)
-    chk('locked level tap -> toast, stays home',await page.evaluate("screen")=='home' and await page.evaluate("!!document.querySelector('.toast')"))
+    await page.evaluate("""() => {
+        const observer = new MutationObserver(records => {
+          if (records.some(r => [...r.addedNodes].some(n => n.classList?.contains('toast')))) {
+            window.lockToastShown = true;
+            observer.disconnect();
+          }
+        });
+        observer.observe(document.body, {childList: true});
+    }""")
+    await page.locator('#diffs .diff[data-n="2"]').tap()
+    chk('locked level tap -> toast, stays home',await page.evaluate("screen==='home' && window.lockToastShown"))
     hit=await page.evaluate("(()=>{const r=$('#diffs .diff[data-n=\"1\"]').getBoundingClientRect();const e=document.elementFromPoint(r.left+r.width/2,r.top+r.height/2);return e.className})()")
     chk('toast does not cover level tile centre',hit!='toast',hit)
     await page.wait_for_timeout(2800)
@@ -126,6 +135,7 @@ async def main():
     await page.tap('#goFree');await page.wait_for_timeout(200)
     chk('free mode after dad mode: 29 shapes 14x30, free pieces intact',await page.evaluate("[ed.mode,document.querySelectorAll('#eShapes .tile').length,E_COLS,E_ROWS,save.free.length]")==['free',29,14,30,1],await page.evaluate("[ed.mode,document.querySelectorAll('#eShapes .tile').length,E_COLS,E_ROWS,save.free.length]"))
     # ---------- mixer ----------
+    await page.tap('#ePalette')
     await page.evaluate("$('#mixOpen').scrollIntoView()");await page.tap('#mixOpen');await page.wait_for_timeout(100)
     chk('mixer opens, save disabled when empty',await page.evaluate("$('#mixer').classList.contains('show')&&$('#mixOk').disabled"))
     await page.tap('#mixPal .sw[data-c="r"]');await page.tap('#mixPal .sw[data-c="y"]')
@@ -136,6 +146,7 @@ async def main():
     await page.touchscreen.tap(*(await bp(8,1.5)));await page.wait_for_timeout(80)
     await page.reload();await page.wait_for_timeout(300);await page.tap('#goFree');await page.wait_for_timeout(200)
     chk('mixed-colour piece survives reload',await page.evaluate("save.free.some(p=>p.c==='c0')&&!!COL.c0"))
+    await page.tap('#ePalette')
     # 13 mixes: eviction of unused / limit
     for i in range(13):
         await page.evaluate("$('#mixOpen').scrollIntoView()");await page.tap('#mixOpen');await page.wait_for_timeout(40)

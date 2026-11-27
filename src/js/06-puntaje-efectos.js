@@ -6,12 +6,13 @@ function updScore(bump){
   $('#scorePill').textContent='🎯 '+(st.score||0);
   let c=$('#stage').querySelector('.combo');
   const k=st.streak||0;
-  if(k>=3){if(!c){c=document.createElement('div');c.className='combo';$('#stage').appendChild(c)}
+  if(k>=3&&!guidedLevel()){if(!c){c=document.createElement('div');c.className='combo';$('#stage').appendChild(c)}
     c.textContent=`🔥 ×${multOf(k)} · ${k}`;if(bump){c.classList.remove('bump');void c.offsetWidth;c.classList.add('bump')}}
   else if(c)c.remove();
 }
 function scoreHit(el){
   st.streak=(st.streak||0)+1;const m=multOf(st.streak),pts=10*m;st.score=(st.score||0)+pts;
+  if(guidedLevel()){updScore(false);return}
   const r=el?el.getBoundingClientRect():stage.getBoundingClientRect();ptsPop('+'+pts,r.left+r.width/2,r.top-10);
   const mile={3:'Great!',6:'Awesome!',10:'Perfect!',15:'Super star!',20:'Amazing!'}[st.streak];
   if(mile){setTimeout(()=>{say(mile,true)},200);setTimeout(()=>word(mile.toUpperCase(),'#ffd84d'),650);sFan()}

@@ -1,14 +1,14 @@
 // ================== NAVEGACIÓN ==================
 function show(name){screen=name;['home','menu','game','editor'].forEach(n=>$('#'+n).classList.toggle('hidden',n!==name));
   requestAnimationFrame(()=>{if(name==='home')renderHome();else if(name==='menu')renderMenu();else if(name==='game'){render();checkBag()}else renderEditor()})}
-function openFig(i){figIdx=i;const F=fig();curLvl=F.custom?'papa':F.set?F.set:F.lvl;save.last=F.id;
+function openFig(i,transfer=false){hint=false;demoStep=false;transferFigure=transfer;figIdx=i;const F=fig();curLvl=F.custom?'papa':F.set?F.set:F.lvl;save.last=F.id;
   const pr=save.prog[F.id];st=(pr&&pr.v===5&&pr.placed<F.steps.length&&progOk(F,pr))?pr:newState();
-  clearTimeout(winT);clearTimeout(bagT);wrong=0;tray.classList.remove('wait');keep();busy=false;show('game')}
+  clearTimeout(winT);clearTimeout(bagT);clearTimeout(wrongT);wrong=0;tray.classList.remove('wait');keep();busy=false;show('game')}
 const sigOf=F=>F.steps.length+':'+F.steps.map(key).join(',').length;
 function progOk(F,pr){if(pr.sig)return pr.sig===sigOf(F);
   return (pr.order||[]).every(k=>sampleOf.call(null,k,F,pr))}
 let winT=0,bagT=0;
-function goModels(){clearTimeout(winT);clearTimeout(bagT);$('#win').classList.remove('show');$('#bag').classList.remove('show');busy=false;show('menu')}
-$('#homeBtn').addEventListener('pointerdown',()=>{ac();goModels()});
+function goModels(){document.querySelector('.guideHand')?.remove();clearTimeout(winT);clearTimeout(bagT);clearTimeout(wrongT);$('#win').classList.remove('show');$('#bag').classList.remove('show');busy=false;show('menu')}
+$('#homeBtn').addEventListener('click',()=>{ac();goModels()});
 $('#home2').addEventListener('click',()=>{ac();goModels()});
 
