@@ -146,6 +146,7 @@ async def main():
     await page.touchscreen.tap(*(await bp(8,1.5)));await page.wait_for_timeout(80)
     await page.reload();await page.wait_for_timeout(300);await page.tap('#goFree');await page.wait_for_timeout(200)
     chk('mixed-colour piece survives reload',await page.evaluate("save.free.some(p=>p.c==='c0')&&!!COL.c0"))
+    await page.tap('#ePalette')
     # 13 mixes: eviction of unused / limit
     for i in range(13):
         await page.evaluate("$('#mixOpen').scrollIntoView()");await page.tap('#mixOpen');await page.wait_for_timeout(40)
